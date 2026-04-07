@@ -28,8 +28,8 @@ class ProfileCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: Colors.tealAccent, width: 2),
-              image: const DecorationImage(
-                image: NetworkImage('https://placeholder.com/150'),
+              image: DecorationImage(
+                image: NetworkImage('https://ui-avatars.com/api/?name=AA&background=003E68&color=fff&size=150'),
                 fit: BoxFit.cover,
               ),
             ),

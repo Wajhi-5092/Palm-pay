@@ -135,9 +135,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   void _showDownloadDialog(BuildContext context) {
-    showDialog(
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Downloading Statement'),
         content: Column(
@@ -151,8 +154,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       ),
     );
     Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!context.mounted) return;
+      navigator.pop();
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('E-Statement downloaded successfully!')),
       );
     });

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'home_page.dart';
+import 'auth_choice_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -43,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen>
     // 3. Start Animation
     _animationController.forward();
 
-    // 4. Navigate to Home Page automatically
+    // 4. Navigate to auth role selection screen automatically
     _startNavigation();
   }
 
@@ -55,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen>
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const HomePage(),
+              const AuthChoiceScreen(),
           transitionsBuilder:
               (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);

@@ -16,7 +16,7 @@ class FavouriteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryGreen = Color(0xFF00C897);
+    const Color primaryGreen = Color.fromARGB(255, 0, 140, 200);
 
     return Column(
       children: [
@@ -52,7 +52,8 @@ class FavouriteItem extends StatelessWidget {
               top: 0,
               right: -5,
               child: IconButton(
-                icon: const Icon(Icons.more_vert, size: 18, color: Colors.black54),
+                icon: const Icon(Icons.more_vert,
+                    size: 18, color: Colors.black54),
                 onPressed: () {},
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),

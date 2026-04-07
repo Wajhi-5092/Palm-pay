@@ -19,7 +19,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryGreen = Color(0xFF00C897);
+    const Color primaryGreen = Color.fromARGB(255, 0, 147, 200);
     const Color bgColor = Colors.white;
 
     return Scaffold(
@@ -123,8 +123,56 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
     // Mock data matching the image items
     final favourites = [
       {
-        'name': 'MUHAMMAD K...',
-        'initials': 'MK',
+        'name': 'Dummy User',
+        'initials': 'DU',
+        'icon': Icons.home,
+        'type': 'home',
+      },
+      {
+        'name': 'Dummy User',
+        'initials': 'DU',
+        'icon': Icons.home,
+        'type': 'home',
+      },
+      {
+        'name': 'Dummy User',
+        'initials': 'DU',
+        'icon': Icons.home,
+        'type': 'home',
+      },
+      {
+        'name': 'Dummy User',
+        'initials': 'DU',
+        'icon': Icons.home,
+        'type': 'home',
+      },
+      {
+        'name': 'Dummy User',
+        'initials': 'DU',
+        'icon': Icons.home,
+        'type': 'home',
+      },
+      {
+        'name': 'Dummy User',
+        'initials': 'DU',
+        'icon': Icons.home,
+        'type': 'home',
+      },
+      {
+        'name': 'Dummy User',
+        'initials': 'DU',
+        'icon': Icons.home,
+        'type': 'home',
+      },
+      {
+        'name': 'Dummy User',
+        'initials': 'DU',
+        'icon': Icons.home,
+        'type': 'home',
+      },
+      {
+        'name': 'Dummy User',
+        'initials': 'DU',
         'icon': Icons.home,
         'type': 'home',
       },

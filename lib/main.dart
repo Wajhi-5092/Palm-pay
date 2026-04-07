@@ -3,6 +3,7 @@ import 'package:paypalm/screens/splash_screen.dart';
 import 'package:paypalm/theme/app_theme.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
