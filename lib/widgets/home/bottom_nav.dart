@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../screens/account_settings_screen.dart';
+import '../../screens/user/account_settings_screen.dart';
 
 class BottomNav extends StatelessWidget {
   final int activeIndex;

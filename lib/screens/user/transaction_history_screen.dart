@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/transaction/transaction_list.dart';
+import '../../widgets/transaction/transaction_list.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});

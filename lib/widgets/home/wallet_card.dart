@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../screens/my_account_details_screen.dart';
+import '../../screens/user/my_account_details_screen.dart';
 
 class WalletCard extends StatefulWidget {
   const WalletCard({super.key});

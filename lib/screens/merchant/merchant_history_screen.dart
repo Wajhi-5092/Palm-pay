@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/merchant/merchant_transaction_list.dart';
+import '../../widgets/merchant/merchant_transaction_list.dart';
 
 class MerchantHistoryScreen extends StatelessWidget {
   const MerchantHistoryScreen({super.key});

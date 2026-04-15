@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../widgets/transaction/transaction_list.dart';
+import '../../widgets/transaction/transaction_list.dart';
 
 class MyAccountDetailsScreen extends StatelessWidget {
   const MyAccountDetailsScreen({super.key});

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../screens/account_screen.dart';
+import '../../screens/user/account_screen.dart';
+import '../../screens/auth_choice_screen.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
@@ -56,7 +57,8 @@ class HomeHeader extends StatelessWidget {
                               .chain(CurveTween(curve: curve));
                           return SlideTransition(
                             position: animation.drive(tween),
-                            child: FadeTransition(opacity: animation, child: child),
+                            child: FadeTransition(
+                                opacity: animation, child: child),
                           );
                         },
                         transitionDuration: const Duration(milliseconds: 600),
@@ -111,11 +113,30 @@ class HomeHeader extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  _buildIconButton(Icons.notifications_none, Colors.black54),
+                  _buildIconButton(
+                    Icons.notifications_none,
+                    Colors.black54,
+                  ),
                   const SizedBox(width: 8),
                   _buildIconButton(
                     Icons.logout,
                     const Color.fromARGB(255, 108, 9, 9),
+                    onTap: () {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  const AuthChoiceScreen(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                                opacity: animation, child: child);
+                          },
+                          transitionDuration: const Duration(milliseconds: 300),
+                        ),
+                        (route) => false,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -126,15 +147,18 @@ class HomeHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildIconButton(IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.3),
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+  Widget _buildIconButton(IconData icon, Color color, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.3),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+        ),
+        child: Icon(icon, color: color, size: 22),
       ),
-      child: Icon(icon, color: color, size: 22),
     );
   }
 

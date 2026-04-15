@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'home_page.dart';
-import 'merchant_home_screen.dart';
+import 'user/login_screen.dart';
+import 'merchant/merchant_home_screen.dart';
 
 class AuthChoiceScreen extends StatefulWidget {
   const AuthChoiceScreen({super.key});
@@ -119,7 +119,7 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
                     subtitle: 'Scan your palm to pay instantly',
                     icon: Icons.fingerprint_rounded,
                     color: const Color(0xFF00D1B2),
-                    onPressed: () => _navigate(context, const HomePage()),
+                    onPressed: () => _navigate(context, const LoginScreen()),
                   ),
 
                   const SizedBox(height: 20),
@@ -127,9 +127,10 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
                   _RoleCard(
                     title: 'Merchant Hub',
                     subtitle: 'Manage sales and palm terminals',
-                    icon: Icons.shutter_speed_rounded,
+                    icon: Icons.storefront_rounded,
                     color: const Color(0xFF3A86FF),
-                    onPressed: () => _navigate(context, const MerchantHomeScreen()),
+                    onPressed: () =>
+                        _navigate(context, const MerchantHomeScreen()),
                   ),
 
                   const SizedBox(height: 60),
@@ -143,7 +144,7 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
   }
 
   void _navigate(BuildContext context, Widget screen) {
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => screen),
     );

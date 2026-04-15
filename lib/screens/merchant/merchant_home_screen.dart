@@ -1,11 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../widgets/merchant/merchant_balance_card.dart';
-import '../widgets/merchant/merchant_action_card.dart';
-import '../widgets/merchant/merchant_transaction_list.dart';
+import '../../widgets/merchant/merchant_balance_card.dart';
+import '../../widgets/merchant/merchant_action_card.dart';
+import '../../widgets/merchant/merchant_transaction_list.dart';
 import 'merchant_sales_screen.dart';
 import 'merchant_history_screen.dart';
 import 'merchant_settings_screen.dart';
+import '../auth_choice_screen.dart';
 
 class MerchantHomeScreen extends StatefulWidget {
   const MerchantHomeScreen({super.key});
@@ -235,7 +236,18 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
         if (value == 'switch') {
           // Switch to personal account logic
         } else if (value == 'logout') {
-          // Log out logic
+          Navigator.of(context).pushAndRemoveUntil(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const AuthChoiceScreen(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              transitionDuration: const Duration(milliseconds: 300),
+            ),
+            (route) => false,
+          );
         }
       },
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
