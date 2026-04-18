@@ -24,15 +24,16 @@ class AccountSettingsScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildScreenTitle(),
-              const SizedBox(height: 32),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildScreenTitle(),
+                const SizedBox(height: 32),
 
               _buildHeaderLabel('ACCOUNT'),
               const SizedBox(height: 16),
@@ -88,7 +89,8 @@ class AccountSettingsScreen extends StatelessWidget {
               ]),
 
               const SizedBox(height: 40),
-            ],
+              ],
+            ),
           ),
         ),
       ),

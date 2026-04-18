@@ -37,12 +37,14 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
         ),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          _buildCategoryFilters(primaryGreen),
-          _buildSearchBar(),
-          Expanded(child: _buildFavouritesGrid()),
-        ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildCategoryFilters(primaryGreen),
+            _buildSearchBar(),
+            Expanded(child: _buildFavouritesGrid()),
+          ],
+        ),
       ),
       floatingActionButton: _buildAddButton(primaryGreen),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

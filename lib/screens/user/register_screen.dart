@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'home_page.dart';
+import '../../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -23,12 +24,60 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _selectedGender;
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isLoading = false;
 
-  void _handleRegister() {
-    // For now, just navigate to home page
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const HomePage()),
-    );
+  Future<void> _handleRegister() async {
+    final name = _nameController.text.trim();
+    final fathersName = _fathersNameController.text.trim();
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+    final cnic = _cnicController.text.trim();
+    final city = _cityController.text.trim();
+    final address = _addressController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty || _selectedGender == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all required fields')),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await AuthService().register(
+        name: name,
+        fathersName: fathersName,
+        gender: _selectedGender!,
+        email: email,
+        phone: phone,
+        cnic: cnic,
+        city: city,
+        address: address,
+        password: password,
+      );
+
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -197,7 +246,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   // Register Button
                   GestureDetector(
-                    onTap: _handleRegister,
+                    onTap: _isLoading ? null : _handleRegister,
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 18),
@@ -214,15 +263,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ],
                       ),
-                      child: const Center(
-                        child: Text(
-                          'Create Account',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      child: Center(
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 3,
+                                ),
+                              )
+                            : const Text(
+                                'Create Account',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                   ),

@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'register_screen.dart';
+import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,15 +12,38 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
 
-  void _handleLogin() {
-    // For now, just navigate to home page
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const HomePage()),
-    );
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    
+    try {
+      await AuthService().login(email, password);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -93,11 +117,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Inputs
                   _buildInputField(
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    controller: _phoneController,
-                    label: 'Phone Number',
-                    hint: '3XX XXXXXXX',
-                    icon: Icons.phone_outlined,
-                    isPhone: true,
+                    controller: _emailController,
+                    label: 'Email Address',
+                    hint: 'Enter your email',
+                    icon: Icons.email_outlined,
                   ),
                   const SizedBox(height: 24),
                   _buildInputField(
@@ -133,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Login Button
                   GestureDetector(
-                    onTap: _handleLogin,
+                    onTap: _isLoading ? null : _handleLogin,
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 18),
@@ -150,15 +173,24 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
-                      child: const Center(
-                        child: Text(
-                          'Sign In',
-                          style: TextStyle(
-                            color: Color(0xFF0F172A),
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      child: Center(
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFF0F172A),
+                                  strokeWidth: 3,
+                                ),
+                              )
+                            : const Text(
+                                'Sign In',
+                                style: TextStyle(
+                                  color: Color(0xFF0F172A),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                   ),

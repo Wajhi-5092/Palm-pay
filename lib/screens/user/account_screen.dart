@@ -29,14 +29,15 @@ class AccountScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: ProfileSection(),
-            ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: ProfileSection(),
+              ),
 
               const SizedBox(height: 10),
 
@@ -100,7 +101,8 @@ class AccountScreen extends StatelessWidget {
                   ],
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../screens/user/account_settings_screen.dart';
+import '../../screens/user/home_page.dart';
 
 class BottomNav extends StatelessWidget {
   final int activeIndex;
@@ -42,7 +43,10 @@ class BottomNav extends StatelessWidget {
                 isActive: activeIndex == 0,
                 onTap: () {
                   if (activeIndex != 0) {
-                    Navigator.of(context).popUntil((route) => route.isFirst);
+                    Navigator.of(context).push(PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const HomePage(),
+                    ));
                   }
                 },
               ),
@@ -60,21 +64,21 @@ class BottomNav extends StatelessWidget {
                             const AccountSettingsScreen(),
                         transitionsBuilder:
                             (context, animation, secondaryAnimation, child) {
-                              const begin = Offset(0.0, 1.0);
-                              const end = Offset.zero;
-                              const curve = Curves.easeInOutCubic;
-                              var tween = Tween(
-                                begin: begin,
-                                end: end,
-                              ).chain(CurveTween(curve: curve));
-                              return SlideTransition(
-                                position: animation.drive(tween),
-                                child: FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                ),
-                              );
-                            },
+                          const begin = Offset(0.0, 1.0);
+                          const end = Offset.zero;
+                          const curve = Curves.easeInOutCubic;
+                          var tween = Tween(
+                            begin: begin,
+                            end: end,
+                          ).chain(CurveTween(curve: curve));
+                          return SlideTransition(
+                            position: animation.drive(tween),
+                            child: FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            ),
+                          );
+                        },
                         transitionDuration: const Duration(milliseconds: 800),
                       ),
                     );

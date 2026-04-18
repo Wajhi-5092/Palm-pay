@@ -36,14 +36,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          _buildFilterSection(primaryBlue),
-          _buildEStatementButton(context, primaryBlue),
-          const Expanded(
-            child: TransactionList(),
-          ),
-        ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildFilterSection(primaryBlue),
+            _buildEStatementButton(context, primaryBlue),
+            const Expanded(
+              child: TransactionList(),
+            ),
+          ],
+        ),
       ),
     );
   }
