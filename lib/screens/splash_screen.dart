@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_choice_screen.dart';
+import 'user/home_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,6 +17,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  Timer? _navTimer;
 
   @override
   void initState() {
@@ -43,25 +46,48 @@ class _SplashScreenState extends State<SplashScreen>
     _startNavigation();
   }
 
-  void _startNavigation() async {
-    await Future.delayed(const Duration(milliseconds: 2500));
+  void _startNavigation() {
+    _navTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (mounted) {
+        _proceedToNextScreen();
+      }
+    });
+  }
 
-    if (mounted) {
+  void _proceedToNextScreen() async {
+    try {
+      // Stop animations to reduce engine load during transition
+      _animationController.stop();
+      
+      final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
+
+      bool isLoggedIn = prefs.getBool('is_logged_in') ?? false;
+
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const AuthChoiceScreen(),
+              isLoggedIn ? const HomePage() : const AuthChoiceScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
           transitionDuration: const Duration(milliseconds: 1000),
         ),
       );
+    } catch (e) {
+      debugPrint('Error during navigation: $e');
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const AuthChoiceScreen()),
+        );
+      }
     }
   }
 
   @override
   void dispose() {
+    _navTimer?.cancel();
     _animationController.dispose();
     super.dispose();
   }
@@ -75,7 +101,6 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: backgroundDark,
       body: Stack(
         children: [
-          // 1. Ambient Background Glows
           Positioned(
             top: -100,
             left: -50,
@@ -85,10 +110,9 @@ class _SplashScreenState extends State<SplashScreen>
             bottom: -100,
             right: -50,
             child: _AmbientGlow(
-                color: const Color(0xFF3A86FF).withValues(alpha: 0.15)),
+              color: const Color(0xFF3A86FF).withValues(alpha: 0.15),
+            ),
           ),
-
-          // 2. Main Content
           Center(
             child: AnimatedBuilder(
               animation: _animationController,
@@ -104,7 +128,6 @@ class _SplashScreenState extends State<SplashScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Logo with Neon Effect
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -129,8 +152,6 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                   const SizedBox(height: 40),
-
-                  // Branding
                   const Text(
                     'PAYPALM',
                     style: TextStyle(
@@ -154,8 +175,6 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
           ),
-
-          // 3. Subtle Loading Indicator at bottom
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -185,10 +204,7 @@ class _AmbientGlow extends StatelessWidget {
     return Container(
       width: 300,
       height: 300,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-      ),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
         child: Container(color: Colors.transparent),

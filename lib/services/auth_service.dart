@@ -1,20 +1,51 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Future<void> _setLoginState(bool isLoggedIn) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_logged_in', isLoggedIn);
+  }
+
   // Login
-  Future<UserCredential?> login(String email, String password) async {
+  Future<UserCredential?> login(String identifier, String password) async {
     try {
+      String emailToUse = identifier;
+
+      if (!identifier.contains('@')) {
+        final querySnapshot = await _firestore
+            .collection('users')
+            .where('phone', isEqualTo: identifier)
+            .limit(1)
+            .get();
+
+        if (querySnapshot.docs.isEmpty) {
+          throw Exception('No user found with this phone number.');
+        }
+        
+        emailToUse = querySnapshot.docs.first.data()['email'];
+      }
+
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
+        email: emailToUse,
         password: password,
       );
+
+      // Save persistent state
+      await _setLoginState(true);
+
       return userCredential;
     } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        throw Exception('Incorrect email or password, please try again.');
+      }
       throw Exception(e.message ?? 'An error occurred during login.');
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 
@@ -31,7 +62,6 @@ class AuthService {
     required String password,
   }) async {
     try {
-      // 1. Create the user in Firebase Auth
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -39,7 +69,6 @@ class AuthService {
 
       String uid = userCredential.user!.uid;
 
-      // 2. Add extra user data to Firestore
       await _firestore.collection('users').doc(uid).set({
         'uid': uid,
         'name': name,
@@ -50,9 +79,12 @@ class AuthService {
         'cnic': cnic,
         'city': city,
         'address': address,
-        'role': 'personal', // personal account
+        'role': 'personal',
         'createdAt': FieldValue.serverTimestamp(),
       });
+
+      // Save persistent state
+      await _setLoginState(true);
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -63,6 +95,7 @@ class AuthService {
   // Logout
   Future<void> logout() async {
     await _auth.signOut();
+    await _setLoginState(false);
   }
 
   // Get Current User

@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import '../../services/auth_service.dart';
+import '../../widgets/custom_snackbar.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -27,6 +28,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
 
   Future<void> _handleRegister() async {
+    // Dismiss the keyboard instantly so the Snackbar renders completely at the bottom
+    FocusScope.of(context).unfocus();
+
     final name = _nameController.text.trim();
     final fathersName = _fathersNameController.text.trim();
     final email = _emailController.text.trim();
@@ -38,15 +42,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final confirmPassword = _confirmPasswordController.text;
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || _selectedGender == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all required fields')),
+      CustomSnackbar.show(
+        context: context,
+        message: 'Please fill all required fields',
+        type: SnackbarType.warning,
       );
       return;
     }
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
+      CustomSnackbar.show(
+        context: context,
+        message: 'Passwords do not match',
+        type: SnackbarType.error,
       );
       return;
     }
@@ -67,13 +75,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (!mounted) return;
+      
+      CustomSnackbar.show(
+        context: context,
+        message: 'Account created successfully!',
+        type: SnackbarType.success,
+      );
+      
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+      CustomSnackbar.show(
+        context: context,
+        message: e.toString().replaceAll('Exception: ', ''),
+        type: SnackbarType.error,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

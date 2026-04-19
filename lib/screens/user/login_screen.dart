@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'register_screen.dart';
 import '../../services/auth_service.dart';
+import '../../widgets/custom_snackbar.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,18 +13,23 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isLoading = false;
 
   Future<void> _handleLogin() async {
-    final email = _emailController.text.trim();
+    // Dismiss the keyboard instantly so the Snackbar renders completely at the bottom
+    FocusScope.of(context).unfocus();
+
+    final identifier = _identifierController.text.trim();
     final password = _passwordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
+    if (identifier.isEmpty || password.isEmpty) {
+      CustomSnackbar.show(
+        context: context,
+        message: 'Please fill in all fields',
+        type: SnackbarType.warning,
       );
       return;
     }
@@ -31,15 +37,24 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     
     try {
-      await AuthService().login(email, password);
+      await AuthService().login(identifier, password);
       if (!mounted) return;
+      
+      CustomSnackbar.show(
+        context: context,
+        message: 'Login successful!',
+        type: SnackbarType.success,
+      );
+      
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+      CustomSnackbar.show(
+        context: context,
+        message: e.toString().replaceAll('Exception: ', ''),
+        type: SnackbarType.error,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -117,10 +132,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Inputs
                   _buildInputField(
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    controller: _emailController,
-                    label: 'Email Address',
-                    hint: 'Enter your email',
-                    icon: Icons.email_outlined,
+                    controller: _identifierController,
+                    label: 'Email or Phone Number',
+                    hint: 'user@email.com or 3XX XXXXXXX',
+                    icon: Icons.person_outline_rounded,
                   ),
                   const SizedBox(height: 24),
                   _buildInputField(
