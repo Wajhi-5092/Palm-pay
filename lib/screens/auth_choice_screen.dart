@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'user/login_screen.dart';
-import 'merchant/merchant_home_screen.dart';
+import '../user/screens/login_screen.dart';
+import '../merchant/screens/merchant_home_screen.dart';
 
 class AuthChoiceScreen extends StatefulWidget {
   const AuthChoiceScreen({super.key});

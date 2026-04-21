@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'home_page.dart';
-import '../../services/auth_service.dart';
-import '../../widgets/custom_snackbar.dart';
+import 'package:paypalm/services/auth_service.dart';
+import 'package:paypalm/widgets/custom_snackbar.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});

@@ -2,8 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'register_screen.dart';
-import '../../services/auth_service.dart';
-import '../../widgets/custom_snackbar.dart';
+import 'package:paypalm/services/auth_service.dart';
+import 'package:paypalm/widgets/custom_snackbar.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

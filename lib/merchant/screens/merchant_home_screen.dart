@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../widgets/merchant/merchant_balance_card.dart';
-import '../../widgets/merchant/merchant_action_card.dart';
-import '../../widgets/merchant/merchant_transaction_list.dart';
+import '../widgets/merchant_balance_card.dart';
+import '../widgets/merchant_action_card.dart';
+import '../widgets/merchant_transaction_list.dart';
 import 'merchant_sales_screen.dart';
 import 'merchant_history_screen.dart';
 import 'merchant_settings_screen.dart';
-import '../auth_choice_screen.dart';
+import 'package:paypalm/screens/auth_choice_screen.dart';
 
 class MerchantHomeScreen extends StatefulWidget {
   const MerchantHomeScreen({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../widgets/favourites/favourite_item.dart';
+import 'package:paypalm/user/widgets/favourites/favourite_item.dart';
 
 class FavouritesScreen extends StatefulWidget {
   const FavouritesScreen({super.key});

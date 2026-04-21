@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../screens/user/account_settings_screen.dart';
-import '../../screens/user/home_page.dart';
+import 'package:paypalm/user/screens/account_settings_screen.dart';
+import 'package:paypalm/user/screens/home_page.dart';
 
 class BottomNav extends StatelessWidget {
   final int activeIndex;

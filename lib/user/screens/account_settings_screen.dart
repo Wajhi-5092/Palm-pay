@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../widgets/account/menu_item.dart';
-import '../../widgets/home/bottom_nav.dart';
+import 'package:paypalm/user/widgets/account/menu_item.dart';
+import 'package:paypalm/user/widgets/home/bottom_nav.dart';
 import 'my_account_details_screen.dart';
-import '../../widgets/account/account_selector.dart';
-import '../../widgets/account/toggle_menu_item.dart';
-import '../../widgets/account/section_group.dart';
+import 'package:paypalm/user/widgets/account/account_selector.dart';
+import 'package:paypalm/user/widgets/account/toggle_menu_item.dart';
+import 'package:paypalm/user/widgets/account/section_group.dart';
 import 'transaction_history_screen.dart';
 
 class AccountSettingsScreen extends StatelessWidget {

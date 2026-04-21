@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:paypalm/widgets/account/menu_item.dart';
-import 'package:paypalm/widgets/account/profile_section.dart';
+import 'package:paypalm/user/widgets/account/menu_item.dart';
+import 'package:paypalm/user/widgets/account/profile_section.dart';
 import 'transaction_history_screen.dart';
 import 'favourites_screen.dart';
 

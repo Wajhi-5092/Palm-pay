@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../widgets/home/home_header.dart';
-import '../../widgets/home/wallet_card.dart';
-import '../../widgets/home/bottom_nav.dart';
+import 'package:paypalm/user/widgets/home/home_header.dart';
+import 'package:paypalm/user/widgets/home/wallet_card.dart';
+import 'package:paypalm/user/widgets/home/bottom_nav.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

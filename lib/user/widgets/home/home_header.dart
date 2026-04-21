@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../screens/user/account_screen.dart';
-import '../../screens/auth_choice_screen.dart';
+import 'package:paypalm/user/screens/account_screen.dart';
+import 'package:paypalm/screens/auth_choice_screen.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
