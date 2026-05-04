@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:paypalm/user/widgets/account/menu_item.dart';
 import 'package:paypalm/user/widgets/account/profile_section.dart';
-import 'transaction_history_screen.dart';
 import 'favourites_screen.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -53,14 +52,6 @@ class AccountScreen extends StatelessWidget {
                         title: 'My Favourites',
                         onTap: () =>
                             _navigateTo(context, const FavouritesScreen()),
-                      ),
-                      AccountMenuItem(
-                        icon: Icons.receipt_long_rounded,
-                        title: 'Transaction History',
-                        onTap: () => _navigateTo(
-                          context,
-                          const TransactionHistoryScreen(),
-                        ),
                       ),
                       const AccountMenuItem(
                         icon: Icons.person_rounded,

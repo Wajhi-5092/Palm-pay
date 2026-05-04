@@ -3,7 +3,6 @@ import 'package:paypalm/user/widgets/account/menu_item.dart';
 import 'package:paypalm/user/widgets/home/bottom_nav.dart';
 import 'my_account_details_screen.dart';
 import 'package:paypalm/user/widgets/account/account_selector.dart';
-import 'package:paypalm/user/widgets/account/toggle_menu_item.dart';
 import 'package:paypalm/user/widgets/account/section_group.dart';
 import 'transaction_history_screen.dart';
 
@@ -34,61 +33,42 @@ class AccountSettingsScreen extends StatelessWidget {
               children: [
                 _buildScreenTitle(),
                 const SizedBox(height: 32),
-
-              _buildHeaderLabel('ACCOUNT'),
-              const SizedBox(height: 16),
-              const AccountSelector(),
-              const SizedBox(height: 16),
-              
-              AccountSectionGroup(children: [
-                AccountMenuItem(
-                  icon: Icons.receipt_long_rounded,
-                  title: 'Transaction History',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) =>
-                            const TransactionHistoryScreen(),
-                        transitionsBuilder:
-                            (context, animation, secondaryAnimation, child) {
-                          const begin = Offset(1.0, 0.0);
-                          const end = Offset.zero;
-                          const curve = Curves.easeInOutCubic;
-                          var tween = Tween(begin: begin, end: end)
-                              .chain(CurveTween(curve: curve));
-                          return SlideTransition(
-                            position: animation.drive(tween),
-                            child: FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            ),
-                          );
-                        },
-                        transitionDuration: const Duration(milliseconds: 600),
-                      ),
-                    );
-                  },
-                ),
-                _buildLinkCardItem(context),
-                const AccountMenuItem(
-                  icon: Icons.description_outlined,
-                  title: 'Tax & ePRC Certificate',
-                ),
-              ]),
-
-              const SizedBox(height: 32),
-
-              _buildHeaderLabel('GENERAL'),
-              const SizedBox(height: 12),
-              AccountSectionGroup(children: [
-                const ToggleMenuItem(
-                  icon: Icons.ad_units_outlined,
-                  title: 'Display Advertisements',
-                  initialValue: false,
-                ),
-              ]),
-
-              const SizedBox(height: 40),
+                _buildHeaderLabel('ACCOUNT'),
+                const SizedBox(height: 16),
+                const AccountSelector(),
+                const SizedBox(height: 16),
+                AccountSectionGroup(children: [
+                  AccountMenuItem(
+                    icon: Icons.receipt_long_rounded,
+                    title: 'Transaction History',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  const TransactionHistoryScreen(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(1.0, 0.0);
+                            const end = Offset.zero;
+                            const curve = Curves.easeInOutCubic;
+                            var tween = Tween(begin: begin, end: end)
+                                .chain(CurveTween(curve: curve));
+                            return SlideTransition(
+                              position: animation.drive(tween),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                            );
+                          },
+                          transitionDuration: const Duration(milliseconds: 600),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildLinkCardItem(context),
+                ]),
               ],
             ),
           ),
@@ -141,11 +121,13 @@ class AccountSettingsScreen extends StatelessWidget {
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
                 const MyAccountDetailsScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               const curve = Curves.easeInOutCubic;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
               return SlideTransition(
                 position: animation.drive(tween),
                 child: FadeTransition(opacity: animation, child: child),

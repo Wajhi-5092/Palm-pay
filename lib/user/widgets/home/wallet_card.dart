@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:paypalm/user/screens/my_account_details_screen.dart';
 
 class WalletCard extends StatefulWidget {
   const WalletCard({super.key});
@@ -14,27 +13,7 @@ class _WalletCardState extends State<WalletCard> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const MyAccountDetailsScreen(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              const begin = Offset(1.0, 0.0);
-              const end = Offset.zero;
-              const curve = Curves.easeInOutCubic;
-              var tween = Tween(begin: begin, end: end)
-                  .chain(CurveTween(curve: curve));
-              return SlideTransition(
-                position: animation.drive(tween),
-                child: FadeTransition(opacity: animation, child: child),
-              );
-            },
-            transitionDuration: const Duration(milliseconds: 600),
-          ),
-        );
-      },
+      onTap: () {},
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 24),
         decoration: BoxDecoration(
@@ -170,6 +149,7 @@ class _WalletCardState extends State<WalletCard> {
                         ),
                         const Spacer(),
                         _buildPremiumButton('Add Cash'),
+
                       ],
                     ),
                   ],

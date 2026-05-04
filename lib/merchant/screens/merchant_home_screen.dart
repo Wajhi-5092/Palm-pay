@@ -77,78 +77,81 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
           ),
 
           Expanded(
-            child: SingleChildScrollView(
+            child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Balance Card
-                  const MerchantBalanceCard(),
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // Balance Card
+                      const MerchantBalanceCard(),
 
-                  const SizedBox(height: 32),
+                      const SizedBox(height: 32),
 
-                  const Text(
-                    'Quick Actions',
-                    style: TextStyle(
-                      color: textPrimary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Action Row
-                  Row(
-                    children: [
-                      const Expanded(
-                        child: MerchantActionCard(
-                          icon: Icons.qr_code_scanner_rounded,
-                          title: 'Receive',
-                          color: accentTeal,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: MerchantActionCard(
-                          icon: Icons.account_balance_rounded,
-                          title: 'Withdraw',
-                          color: accentBlue,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Transactions Section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
                       const Text(
-                        'Recent Activity',
+                        'Quick Actions',
                         style: TextStyle(
                           color: textPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {},
-                        style: TextButton.styleFrom(
-                          foregroundColor: accentBlue,
-                          textStyle:
-                              const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        child: const Text('See All'),
-                      ),
-                    ],
-                  ),
+                      const SizedBox(height: 16),
 
-                  const MerchantTransactionList(),
-                  const SizedBox(height: 30),
-                ],
-              ),
+                      // Action Row
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: MerchantActionCard(
+                              icon: Icons.qr_code_scanner_rounded,
+                              title: 'Receive',
+                              color: accentTeal,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: MerchantActionCard(
+                              icon: Icons.account_balance_rounded,
+                              title: 'Withdraw',
+                              color: accentBlue,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Transactions Section
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Recent Activity',
+                            style: TextStyle(
+                              color: textPrimary,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            style: TextButton.styleFrom(
+                              foregroundColor: accentBlue,
+                              textStyle:
+                                  const TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                            child: const Text('See All'),
+                          ),
+                        ],
+                      ),
+
+                      const MerchantTransactionList(),
+                      const SizedBox(height: 30),
+                    ]),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

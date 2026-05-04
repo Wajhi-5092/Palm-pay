@@ -114,11 +114,6 @@ class HomeHeader extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   _buildIconButton(
-                    Icons.notifications_none,
-                    Colors.black54,
-                  ),
-                  const SizedBox(width: 8),
-                  _buildIconButton(
                     Icons.logout,
                     const Color.fromARGB(255, 108, 9, 9),
                     onTap: () {
