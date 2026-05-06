@@ -18,7 +18,8 @@ class MyAccountDetailsScreen extends StatelessWidget {
           backgroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
+            icon:
+                const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
             onPressed: () => Navigator.pop(context),
           ),
           title: const Text(
@@ -72,51 +73,95 @@ class MyAccountDetailsScreen extends StatelessWidget {
 
   Widget _buildBalanceCard(Color themeColor) {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.account_balance_wallet_outlined, color: Color.fromARGB(255, 2, 41, 125), size: 32),
-          const SizedBox(height: 12),
-          const Text(
-            'PayPalm Mobile Account',
-            style: TextStyle(color: Color.fromARGB(255, 2, 41, 125), fontSize: 13, fontWeight: FontWeight.w500),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Rs. 10,090.86',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-              ),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: themeColor,
-                  elevation: 0,
-                  side: BorderSide(color: themeColor),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                ),
-                child: const Text('Add Cash', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final isSmall = width < 350;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.account_balance_wallet_outlined,
+                      color: const Color.fromARGB(255, 2, 41, 125),
+                      size: isSmall ? 26 : 32,
+                    ),
+                    SizedBox(height: width * 0.03),
+                    Text(
+                      'PayPalm Mobile Account',
+                      style: TextStyle(
+                        color: const Color.fromARGB(255, 2, 41, 125),
+                        fontSize: isSmall ? 11 : 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: width * 0.03),
+                    Row(
+                      children: [
+                        // 🔥 Prevent overflow
+                        Expanded(
+                          child: Text(
+                            'Rs. 10,090.86',
+                            overflow: TextOverflow.clip,
+                            style: TextStyle(
+                              fontSize: isSmall ? 22 : 28,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(width: width * 0.03),
+
+                        ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor:
+                                const Color.fromARGB(255, 2, 41, 125),
+                            elevation: 0,
+                            side: const BorderSide(
+                              color: Color.fromARGB(255, 2, 41, 125),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSmall ? 10 : 16,
+                              vertical: isSmall ? 8 : 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Text(
+                            'Add Cash',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: isSmall ? 11 : 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: width * 0.02),
+                  ],
+                );
+              },
+            ),
+          ],
+        ));
   }
 
   Widget _buildDashedLinkButton() {
@@ -127,20 +172,41 @@ class MyAccountDetailsScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: _DashedContainer(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.add_circle_outline, size: 40, color: Colors.black),
-            SizedBox(height: 16),
-            Text(
-              'Link Any Bank\nAccount or\nCard',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5),
-            ),
-          ],
-        ),
-      ),
+      child: _DashedContainer(child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final isSmall = width < 350;
+
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.add_circle_outline,
+                size: isSmall ? 34 : 40,
+                color: Colors.black,
+              ),
+
+              SizedBox(height: width * 0.04),
+
+              // 🔥 FIX: constrain + allow wrap properly
+              SizedBox(
+                width: width,
+                child: Text(
+                  'Link Any Bank\nAccount or\nCard',
+                  textAlign: TextAlign.center,
+                  softWrap: true,
+                  overflow: TextOverflow.visible,
+                  style: TextStyle(
+                    fontSize: isSmall ? 10 : 12,
+                    color: Colors.grey,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      )),
     );
   }
 }
@@ -181,11 +247,12 @@ class _DashPainter extends CustomPainter {
     );
 
     final Path path = Path()..addRRect(rRect);
-    
+
     for (PathMetric pathMetric in path.computeMetrics()) {
       double distance = 0;
       while (distance < pathMetric.length) {
-        canvas.drawPath(pathMetric.extractPath(distance, distance + dashWidth), paint);
+        canvas.drawPath(
+            pathMetric.extractPath(distance, distance + dashWidth), paint);
         distance += dashWidth + dashSpace;
       }
     }

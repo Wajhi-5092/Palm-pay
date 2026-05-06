@@ -35,17 +35,17 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     setState(() => _isLoading = true);
-    
+
     try {
       await AuthService().login(identifier, password);
       if (!mounted) return;
-      
+
       CustomSnackbar.show(
         context: context,
         message: 'Login successful!',
         type: SnackbarType.success,
       );
-      
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
@@ -75,7 +75,11 @@ class _LoginScreenState extends State<LoginScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF0F172A)],
+                colors: [
+                  Color(0xFF0F172A),
+                  Color(0xFF1E293B),
+                  Color(0xFF0F172A)
+                ],
               ),
             ),
           ),
@@ -102,7 +106,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Back Button
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white, size: 20),
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.white.withValues(alpha: 0.05),
                       padding: const EdgeInsets.all(12),
@@ -213,17 +218,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 32),
 
                   // Register link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
-                        'Don\'t have an account? ',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+                        "Don't have an account? ",
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
                       ),
                       GestureDetector(
                         onTap: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterScreen(),
+                            ),
                           );
                         },
                         child: const Text(
@@ -279,17 +289,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 ),
                 child: TextField(
                   controller: controller,
                   obscureText: isPassword && !isPasswordVisible,
                   style: const TextStyle(color: Colors.white, fontSize: 16),
-                  keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
+                  keyboardType:
+                      isPhone ? TextInputType.phone : TextInputType.text,
                   textAlignVertical: TextAlignVertical.center,
                   decoration: InputDecoration(
                     hintText: hint,
-                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+                    hintStyle:
+                        TextStyle(color: Colors.white.withValues(alpha: 0.3)),
                     prefixIcon: isPhone
                         ? Container(
                             padding: const EdgeInsets.only(left: 20, right: 8),
@@ -315,11 +328,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                             ),
                           )
-                        : Icon(icon, color: Colors.white.withValues(alpha: 0.5), size: 22),
+                        : Icon(icon,
+                            color: Colors.white.withValues(alpha: 0.5),
+                            size: 22),
                     suffixIcon: isPassword
                         ? IconButton(
                             icon: Icon(
-                              isPasswordVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              isPasswordVisible
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
                               color: Colors.white.withValues(alpha: 0.5),
                               size: 20,
                             ),
@@ -327,7 +344,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           )
                         : null,
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 18),
                   ),
                 ),
               ),

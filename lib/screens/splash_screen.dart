@@ -14,197 +14,220 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
-  Timer? _navTimer;
+  late AnimationController _controller;
+  late Animation<double> _fade;
+  late Animation<double> _scale;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(
+    _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1400),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _fade = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+    );
+
+    _scale = Tween<double>(begin: 0.9, end: 1).animate(
       CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+        parent: _controller,
+        curve: Curves.easeOutCubic,
       ),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.8, curve: Curves.easeOutCubic),
-      ),
-    );
-
-    _animationController.forward();
-    _startNavigation();
+    _controller.forward();
+    _startNav();
   }
 
-  void _startNavigation() {
-    _navTimer = Timer(const Duration(milliseconds: 2500), () {
-      if (mounted) {
-        _proceedToNextScreen();
-      }
+  void _startNav() {
+    _timer = Timer(const Duration(milliseconds: 2400), () {
+      if (mounted) _goNext();
     });
   }
 
-  void _proceedToNextScreen() async {
-    try {
-      // Stop animations to reduce engine load during transition
-      _animationController.stop();
-      
-      final prefs = await SharedPreferences.getInstance();
-      if (!mounted) return;
+  Future<void> _goNext() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
 
-      bool isLoggedIn = prefs.getBool('is_logged_in') ?? false;
+    final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
 
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              isLoggedIn ? const HomePage() : const AuthChoiceScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 1000),
-        ),
-      );
-    } catch (e) {
-      debugPrint('Error during navigation: $e');
-
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const AuthChoiceScreen()),
-        );
-      }
-    }
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 800),
+        pageBuilder: (_, __, ___) =>
+            isLoggedIn ? const HomePage() : const AuthChoiceScreen(),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+      ),
+    );
   }
 
   @override
   void dispose() {
-    _navTimer?.cancel();
-    _animationController.dispose();
+    _timer?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color brandTeal = Color(0xFF00D1B2);
-    const Color backgroundDark = Color(0xFF0F172A);
+    const brandTeal = Color(0xFF00D1B2);
+    const bg = Color(0xFF0F172A);
+
+    final size = MediaQuery.of(context).size;
+    final height = size.height;
+
+    final isSmall = height < 650;
 
     return Scaffold(
-      backgroundColor: backgroundDark,
-      body: Stack(
-        children: [
-          Positioned(
-            top: -100,
-            left: -50,
-            child: _AmbientGlow(color: brandTeal.withValues(alpha: 0.15)),
-          ),
-          Positioned(
-            bottom: -100,
-            right: -50,
-            child: _AmbientGlow(
-              color: const Color(0xFF3A86FF).withValues(alpha: 0.15),
-            ),
-          ),
-          Center(
-            child: AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: child,
-                  ),
-                );
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.05),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: brandTeal.withValues(alpha: 0.2),
-                          blurRadius: 40,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.bolt_rounded,
-                      size: 70,
-                      color: brandTeal,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  const Text(
-                    'PAYPALM',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 10,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'FUTURE OF PAYMENTS',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.4),
-                      fontSize: 12,
-                      letterSpacing: 4,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 60),
-              child: SizedBox(
-                width: 40,
-                child: LinearProgressIndicator(
-                  backgroundColor: Colors.white.withValues(alpha: 0.05),
-                  color: brandTeal.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(10),
+      backgroundColor: bg,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
+            children: [
+              // 🔵 Top Glow
+              Positioned(
+                top: -constraints.maxHeight * 0.15,
+                left: -constraints.maxWidth * 0.2,
+                child: _Glow(
+                  size: constraints.maxWidth * 0.8,
+                  color: brandTeal.withValues(alpha: 0.12),
                 ),
               ),
-            ),
-          ),
-        ],
+
+              // 🔵 Bottom Glow
+              Positioned(
+                bottom: -constraints.maxHeight * 0.15,
+                right: -constraints.maxWidth * 0.2,
+                child: _Glow(
+                  size: constraints.maxWidth * 0.8,
+                  color: const Color(0xFF3A86FF).withValues(alpha: 0.12),
+                ),
+              ),
+
+              // ✅ TRUE CENTER (no drift)
+              Align(
+                alignment: Alignment.center,
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (_, child) {
+                    return FadeTransition(
+                      opacity: _fade,
+                      child: ScaleTransition(
+                        scale: _scale,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Logo
+                      Container(
+                        padding: EdgeInsets.all(isSmall ? 14 : 18),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.05),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: brandTeal.withValues(alpha: 0.25),
+                              blurRadius: isSmall ? 25 : 35,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.bolt_rounded,
+                          size: isSmall ? 50 : 65,
+                          color: brandTeal,
+                        ),
+                      ),
+
+                      SizedBox(height: height * 0.035),
+
+                      // Title (perfect center)
+                      Text(
+                        'PAYPALM',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: isSmall ? 20 : 26,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: isSmall ? 6 : 10,
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      // Subtitle
+                      Text(
+                        'FUTURE OF PAYMENTS',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.4),
+                          fontSize: isSmall ? 9 : 11,
+                          letterSpacing: isSmall ? 2 : 4,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 🔻 Bottom loader (always safe)
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: constraints.maxHeight * 0.06,
+                  ),
+                  child: SizedBox(
+                    width: isSmall ? 30 : 40,
+                    child: LinearProgressIndicator(
+                      minHeight: 4,
+                      backgroundColor: Colors.white.withValues(alpha: 0.05),
+                      color: brandTeal.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-class _AmbientGlow extends StatelessWidget {
+class _Glow extends StatelessWidget {
+  final double size;
   final Color color;
-  const _AmbientGlow({required this.color});
+
+  const _Glow({
+    required this.size,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 300,
-      height: 300,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+      ),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
         child: Container(color: Colors.transparent),

@@ -3,138 +3,154 @@ import 'package:flutter/material.dart';
 import '../user/screens/login_screen.dart';
 import '../merchant/screens/merchant_home_screen.dart';
 
-class AuthChoiceScreen extends StatefulWidget {
+class AuthChoiceScreen extends StatelessWidget {
   const AuthChoiceScreen({super.key});
 
   @override
-  State<AuthChoiceScreen> createState() => _AuthChoiceScreenState();
-}
-
-class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
-  @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final height = size.height;
+    final width = size.width;
+
+    // Responsive scaling
+    final isSmall = height < 700;
+
     return Scaffold(
       body: Stack(
         children: [
-          // 1. Dynamic Gradient Background
+          // Background Gradient
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF0F172A), // Deep Navy
-                  Color(0xFF1E293B), // Slate
+                  Color(0xFF0F172A),
+                  Color(0xFF1E293B),
                   Color(0xFF0F172A),
                 ],
               ),
             ),
           ),
 
-          // 2. Decorative Ambient Light (Blur effect)
+          // Ambient Glow
           Positioned(
             top: -100,
             right: -50,
             child: Container(
-              width: 300,
-              height: 300,
+              width: 250,
+              height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: const Color(0xFF3A86FF).withValues(alpha: 0.15),
               ),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+                filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
                 child: Container(color: Colors.transparent),
               ),
             ),
           ),
 
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 60),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: height),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: width * 0.07),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: height * 0.06),
 
-                  // Branding Section
-                  Center(
-                    child: Column(
-                      children: [
-                        const Text(
-                          'PAYPALM',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 8,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            'SECURE BIOMETRIC PAYMENTS',
-                            style: TextStyle(
-                              color: Color(0xFF00D1B2),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.5,
+                      // Branding
+                      Center(
+                        child: Column(
+                          children: [
+                            Text(
+                              'PAYPALM',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: isSmall ? 20 : 24,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 6,
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                'SECURE BIOMETRIC PAYMENTS',
+                                style: TextStyle(
+                                  color: const Color(0xFF00D1B2),
+                                  fontSize: isSmall ? 9 : 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+
+                      SizedBox(height: height * 0.1),
+
+                      // Heading
+                      Text(
+                        'Welcome back,',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: isSmall ? 16 : 18,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Choose your portal',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: isSmall ? 24 : 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      SizedBox(height: height * 0.05),
+
+                      // Cards
+                      RoleCard(
+                        title: 'Personal Account',
+                        subtitle: 'Scan your palm to pay instantly',
+                        icon: Icons.fingerprint_rounded,
+                        color: const Color(0xFF00D1B2),
+                        isSmall: isSmall,
+                        onPressed: () => _navigate(
+                          context,
+                          const LoginScreen(),
+                        ),
+                      ),
+
+                      SizedBox(height: height * 0.025),
+
+                      RoleCard(
+                        title: 'Merchant Hub',
+                        subtitle: 'Manage sales and palm terminals',
+                        icon: Icons.storefront_rounded,
+                        color: const Color(0xFF3A86FF),
+                        isSmall: isSmall,
+                        onPressed: () => _navigate(
+                          context,
+                          const MerchantHomeScreen(),
+                        ),
+                      ),
+
+                      SizedBox(height: height * 0.08),
+                    ],
                   ),
-
-                  const Spacer(),
-
-                  const Text(
-                    'Welcome back,',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  const Text(
-                    'Choose your portal',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Role Cards
-                  _RoleCard(
-                    title: 'Personal Account',
-                    subtitle: 'Scan your palm to pay instantly',
-                    icon: Icons.fingerprint_rounded,
-                    color: const Color(0xFF00D1B2),
-                    onPressed: () => _navigate(context, const LoginScreen()),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  _RoleCard(
-                    title: 'Merchant Hub',
-                    subtitle: 'Manage sales and palm terminals',
-                    icon: Icons.storefront_rounded,
-                    color: const Color(0xFF3A86FF),
-                    onPressed: () =>
-                        _navigate(context, const MerchantHomeScreen()),
-                  ),
-
-                  const SizedBox(height: 60),
-                ],
+                ),
               ),
             ),
           ),
@@ -143,7 +159,7 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
     );
   }
 
-  void _navigate(BuildContext context, Widget screen) {
+  static void _navigate(BuildContext context, Widget screen) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => screen),
@@ -151,13 +167,15 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
   }
 }
 
-class _RoleCard extends StatelessWidget {
-  const _RoleCard({
+class RoleCard extends StatelessWidget {
+  const RoleCard({
+    super.key,
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.color,
     required this.onPressed,
+    required this.isSmall,
   });
 
   final String title;
@@ -165,54 +183,57 @@ class _RoleCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onPressed;
+  final bool isSmall;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onPressed,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(isSmall ? 16 : 20),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.1),
-                width: 1.5,
+                width: 1.2,
               ),
             ),
             child: Row(
               children: [
-                // Icon Container with Glow
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(isSmall ? 10 : 12),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
                         color: color.withValues(alpha: 0.3),
-                        blurRadius: 15,
-                        spreadRadius: 2,
+                        blurRadius: 12,
+                        spreadRadius: 1,
                       )
                     ],
                   ),
-                  child: Icon(icon, color: color, size: 28),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: isSmall ? 24 : 28,
+                  ),
                 ),
-                const SizedBox(width: 20),
+                SizedBox(width: isSmall ? 14 : 18),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
+                          fontSize: isSmall ? 16 : 18,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -220,8 +241,8 @@ class _RoleCard extends StatelessWidget {
                       Text(
                         subtitle,
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
-                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: isSmall ? 12 : 13,
                         ),
                       ),
                     ],
@@ -230,7 +251,7 @@ class _RoleCard extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: Colors.white.withValues(alpha: 0.3),
-                  size: 18,
+                  size: isSmall ? 14 : 16,
                 ),
               ],
             ),

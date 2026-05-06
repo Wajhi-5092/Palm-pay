@@ -41,7 +41,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty || _selectedGender == null) {
+    if (name.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        _selectedGender == null) {
       CustomSnackbar.show(
         context: context,
         message: 'Please fill all required fields',
@@ -75,13 +78,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (!mounted) return;
-      
+
       CustomSnackbar.show(
         context: context,
         message: 'Account created successfully!',
         type: SnackbarType.success,
       );
-      
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
@@ -111,7 +114,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF0F172A)],
+                colors: [
+                  Color(0xFF0F172A),
+                  Color(0xFF1E293B),
+                  Color(0xFF0F172A)
+                ],
               ),
             ),
           ),
@@ -138,7 +145,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   // Back Button
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white, size: 20),
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.white.withValues(alpha: 0.05),
                       padding: const EdgeInsets.all(12),
@@ -305,12 +313,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 32),
 
                   // Login link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
                         'Already have an account? ',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -351,9 +362,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _selectedGender,
-              hint: Text('Select Gender', style: TextStyle(color: Colors.white.withValues(alpha: 0.3))),
+              hint: Text('Select Gender',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.3))),
               dropdownColor: const Color(0xFF1E293B),
-              icon: Icon(Icons.arrow_drop_down, color: Colors.white.withValues(alpha: 0.5)),
+              icon: Icon(Icons.arrow_drop_down,
+                  color: Colors.white.withValues(alpha: 0.5)),
               isExpanded: true,
               style: const TextStyle(color: Colors.white),
               items: ['Male', 'Female', 'Other'].map((String value) {
@@ -408,17 +421,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 ),
                 child: TextField(
                   controller: controller,
                   obscureText: isPassword && !isPasswordVisible,
                   style: const TextStyle(color: Colors.white, fontSize: 16),
-                  keyboardType: (isPhone || isNumber) ? TextInputType.phone : TextInputType.text,
+                  keyboardType: (isPhone || isNumber)
+                      ? TextInputType.phone
+                      : TextInputType.text,
                   textAlignVertical: TextAlignVertical.center,
                   decoration: InputDecoration(
                     hintText: hint,
-                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+                    hintStyle:
+                        TextStyle(color: Colors.white.withValues(alpha: 0.3)),
                     prefixIcon: isPhone
                         ? Container(
                             padding: const EdgeInsets.only(left: 20, right: 8),
@@ -444,11 +461,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ],
                             ),
                           )
-                        : Icon(icon, color: Colors.white.withValues(alpha: 0.5), size: 22),
+                        : Icon(icon,
+                            color: Colors.white.withValues(alpha: 0.5),
+                            size: 22),
                     suffixIcon: isPassword
                         ? IconButton(
                             icon: Icon(
-                              isPasswordVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              isPasswordVisible
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
                               color: Colors.white.withValues(alpha: 0.5),
                               size: 20,
                             ),
@@ -456,7 +477,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           )
                         : null,
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 18),
                   ),
                 ),
               ),
