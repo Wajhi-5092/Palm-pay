@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'register_screen.dart';
 import 'package:paypalm/services/auth_service.dart';
+import 'package:paypalm/services/mpin_service.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+  final MpinService _mpinService = MpinService();
 
   Future<void> _handleLogin() async {
     // Dismiss the keyboard instantly so the Snackbar renders completely at the bottom
@@ -46,6 +48,9 @@ class _LoginScreenState extends State<LoginScreen> {
         type: SnackbarType.success,
       );
 
+      await _maybeOfferMpinSetup();
+      if (!mounted) return;
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
@@ -59,6 +64,90 @@ class _LoginScreenState extends State<LoginScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _maybeOfferMpinSetup() async {
+    final hasMpin = await _mpinService.hasMpin();
+    if (hasMpin || !mounted) return;
+
+    final mpinController = TextEditingController();
+    final confirmController = TextEditingController();
+    bool enableOnReopen = true;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Set MPIN for Quick Login'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Create a 4-digit MPIN to login instantly when reopening the app.',
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: mpinController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 4,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'MPIN',
+                        counterText: '',
+                      ),
+                    ),
+                    TextField(
+                      controller: confirmController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 4,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm MPIN',
+                        counterText: '',
+                      ),
+                    ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: enableOnReopen,
+                      onChanged: (value) {
+                        setDialogState(() => enableOnReopen = value);
+                      },
+                      title: const Text('Use MPIN on every app reopen'),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Not now'),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    final mpin = mpinController.text.trim();
+                    final confirm = confirmController.text.trim();
+                    if (mpin.length != 4 || int.tryParse(mpin) == null) {
+                      return;
+                    }
+                    if (mpin != confirm) {
+                      return;
+                    }
+                    await _mpinService.setMpin(mpin);
+                    await _mpinService.setEnabledOnReopen(enableOnReopen);
+                    if (!dialogContext.mounted) return;
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text('Save MPIN'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -363,9 +452,12 @@ class _AmbientGlow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shortestSide = MediaQuery.of(context).size.shortestSide;
+    final glowSize = (shortestSide * 0.75).clamp(220.0, 360.0);
+
     return Container(
-      width: 300,
-      height: 300,
+      width: glowSize,
+      height: glowSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color,

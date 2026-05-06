@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:paypalm/services/auth_service.dart';
 import '../widgets/merchant_balance_card.dart';
 import '../widgets/merchant_action_card.dart';
 import '../widgets/merchant_transaction_list.dart';
@@ -7,6 +8,7 @@ import 'merchant_sales_screen.dart';
 import 'merchant_history_screen.dart';
 import 'merchant_settings_screen.dart';
 import 'package:paypalm/screens/auth_choice_screen.dart';
+import 'package:paypalm/widgets/custom_snackbar.dart';
 
 class MerchantHomeScreen extends StatefulWidget {
   const MerchantHomeScreen({super.key});
@@ -161,6 +163,9 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final glowSize =
+        (MediaQuery.of(context).size.shortestSide * 0.7).clamp(190.0, 320.0);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -179,12 +184,18 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
           Positioned(
             top: -50,
             right: -30,
-            child: _LightAmbientGlow(color: accentBlue.withValues(alpha: 0.08)),
+            child: _LightAmbientGlow(
+              color: accentBlue.withValues(alpha: 0.08),
+              size: glowSize,
+            ),
           ),
           Positioned(
             bottom: 100,
             left: -50,
-            child: _LightAmbientGlow(color: accentTeal.withValues(alpha: 0.08)),
+            child: _LightAmbientGlow(
+              color: accentTeal.withValues(alpha: 0.08),
+              size: glowSize,
+            ),
           ),
 
           // Render active screen wrapper in SafeArea context
@@ -235,22 +246,32 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
 
   Widget _buildProfileAvatar(Color accentColor) {
     return PopupMenuButton<String>(
-      onSelected: (value) {
+      onSelected: (value) async {
         if (value == 'switch') {
           // Switch to personal account logic
         } else if (value == 'logout') {
-          Navigator.of(context).pushAndRemoveUntil(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  const AuthChoiceScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-              transitionDuration: const Duration(milliseconds: 300),
-            ),
-            (route) => false,
-          );
+          await AuthService().logout();
+          if (!mounted) return;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            Navigator.of(context).pushAndRemoveUntil(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const AuthChoiceScreen(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                transitionDuration: const Duration(milliseconds: 300),
+              ),
+              (route) => false,
+            );
+            CustomSnackbar.show(
+              context: context,
+              message: 'Merchant logged out',
+              type: SnackbarType.info,
+            );
+          });
         }
       },
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -330,13 +351,14 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
 // Helper for the background effect
 class _LightAmbientGlow extends StatelessWidget {
   final Color color;
-  const _LightAmbientGlow({required this.color});
+  final double size;
+  const _LightAmbientGlow({required this.color, required this.size});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 250,
-      height: 250,
+      width: size,
+      height: size,
       decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),

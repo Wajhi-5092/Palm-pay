@@ -92,10 +92,12 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
   }
 
   Widget _buildSearchBar() {
+    final searchHeight =
+        (MediaQuery.of(context).size.width * 0.14).clamp(48.0, 56.0);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
       child: Container(
-        height: 52,
+        height: searchHeight,
         decoration: BoxDecoration(
           color: const Color(0xFFF6F7F9),
           borderRadius: BorderRadius.circular(26),
@@ -180,31 +182,46 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
       },
     ];
 
-    return GridView.builder(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 24,
-      ),
-      itemCount: favourites.length,
-      itemBuilder: (context, index) {
-        final fav = favourites[index];
-        return FavouriteItem(
-          name: fav['name'] as String,
-          initials: fav['initials'] as String?,
-          imageUrl: fav['image'] as String?,
-          typeIcon: fav['icon'] as IconData?,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final crossAxisCount = width >= 900
+            ? 5
+            : width >= 700
+                ? 4
+                : width >= 500
+                    ? 3
+                    : 2;
+
+        return GridView.builder(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 0.78,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 24,
+          ),
+          itemCount: favourites.length,
+          itemBuilder: (context, index) {
+            final fav = favourites[index];
+            return FavouriteItem(
+              name: fav['name'] as String,
+              initials: fav['initials'] as String?,
+              imageUrl: fav['image'] as String?,
+              typeIcon: fav['icon'] as IconData?,
+            );
+          },
         );
       },
     );
   }
 
   Widget _buildAddButton(Color color) {
+    final width = MediaQuery.of(context).size.width;
+    final buttonWidth = (width * 0.65).clamp(200.0, 320.0);
     return Container(
-      width: 240,
+      width: buttonWidth,
       height: 56,
       margin: const EdgeInsets.only(bottom: 10),
       child: FloatingActionButton.extended(

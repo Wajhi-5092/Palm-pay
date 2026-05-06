@@ -8,6 +8,12 @@ class BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final navHeight = (screenWidth * 0.18).clamp(64.0, 74.0);
+    final centerGap = (screenWidth * 0.16).clamp(44.0, 72.0);
+    final iconSize = (screenWidth * 0.067).clamp(22.0, 28.0);
+    final labelSize = (screenWidth * 0.027).clamp(9.0, 11.0);
+
     return BottomAppBar(
       shape: const CircularNotchedRectangle(),
       color: Colors.transparent,
@@ -15,7 +21,7 @@ class BottomNav extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Container(
         width: double.infinity,
-        height: 70,
+        height: navHeight,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.topCenter,
@@ -40,6 +46,8 @@ class BottomNav extends StatelessWidget {
                 context,
                 Icons.home_rounded,
                 'Home',
+                iconSize: iconSize,
+                labelSize: labelSize,
                 isActive: activeIndex == 0,
                 onTap: () {
                   if (activeIndex != 0) {
@@ -50,11 +58,13 @@ class BottomNav extends StatelessWidget {
                   }
                 },
               ),
-              const SizedBox(width: 60),
+              SizedBox(width: centerGap),
               _buildNavItem(
                 context,
                 Icons.person_rounded,
                 'Account',
+                iconSize: iconSize,
+                labelSize: labelSize,
                 isActive: activeIndex == 1,
                 onTap: () {
                   if (activeIndex != 1) {
@@ -96,6 +106,8 @@ class BottomNav extends StatelessWidget {
     BuildContext context,
     IconData icon,
     String label, {
+    required double iconSize,
+    required double labelSize,
     bool isActive = false,
     VoidCallback? onTap,
   }) {
@@ -107,13 +119,17 @@ class BottomNav extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: isActive ? activeColor : inactiveColor, size: 26),
+          Icon(
+            icon,
+            color: isActive ? activeColor : inactiveColor,
+            size: iconSize,
+          ),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
               color: isActive ? activeColor : inactiveColor,
-              fontSize: 10,
+              fontSize: labelSize,
               fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
             ),
           ),
@@ -128,9 +144,14 @@ class CenterQRButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final buttonSize = (screenWidth * 0.18).clamp(58.0, 72.0);
+    final iconSize = (buttonSize * 0.46).clamp(26.0, 34.0);
+    final borderWidth = (buttonSize * 0.06).clamp(3.0, 4.5);
+
     return Container(
-      width: 68,
-      height: 68,
+      width: buttonSize,
+      height: buttonSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: const RadialGradient(
@@ -141,13 +162,13 @@ class CenterQRButton extends StatelessWidget {
             Color.fromARGB(255, 0, 95, 142),
           ],
         ),
-        border: Border.all(color: const Color(0xFFF1F3F5), width: 4),
+        border: Border.all(color: const Color(0xFFF1F3F5), width: borderWidth),
       ),
-      child: const Center(
+      child: Center(
         child: Icon(
           Icons.qr_code_scanner_rounded,
           color: Colors.white,
-          size: 32,
+          size: iconSize,
           shadows: [
             Shadow(color: Colors.black26, offset: Offset(0, 2), blurRadius: 2),
           ],

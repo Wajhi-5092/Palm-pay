@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:paypalm/services/mpin_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_choice_screen.dart';
+import '../user/modules/security/mpin_unlock_screen.dart';
 import '../user/screens/home_page.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -18,6 +20,7 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _fade;
   late Animation<double> _scale;
   Timer? _timer;
+  final MpinService _mpinService = MpinService();
 
   @override
   void initState() {
@@ -55,13 +58,20 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
+    final hasMpin = await _mpinService.hasMpin();
+    final mpinOnReopen = await _mpinService.isEnabledOnReopen();
+    if (!mounted) return;
 
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 800),
         pageBuilder: (_, __, ___) =>
-            isLoggedIn ? const HomePage() : const AuthChoiceScreen(),
+            isLoggedIn
+                ? (hasMpin && mpinOnReopen
+                    ? const MpinUnlockScreen()
+                    : const HomePage())
+                : const AuthChoiceScreen(),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
       ),

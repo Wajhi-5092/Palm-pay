@@ -1,13 +1,128 @@
 import 'package:flutter/material.dart';
+import 'package:paypalm/screens/auth_choice_screen.dart';
+import 'package:paypalm/services/auth_service.dart';
+import 'package:paypalm/services/local_app_state_service.dart';
+
 import 'package:paypalm/user/widgets/account/menu_item.dart';
 import 'package:paypalm/user/widgets/home/bottom_nav.dart';
+import 'package:paypalm/widgets/custom_snackbar.dart';
 import 'my_account_details_screen.dart';
 import 'package:paypalm/user/widgets/account/account_selector.dart';
 import 'package:paypalm/user/widgets/account/section_group.dart';
 import 'transaction_history_screen.dart';
 
-class AccountSettingsScreen extends StatelessWidget {
+class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({super.key});
+
+  @override
+  State<AccountSettingsScreen> createState() => _AccountSettingsScreenState();
+}
+
+class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
+  final LocalAppStateService _localState = LocalAppStateService();
+  bool _notificationsEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    await _localState.ensureDefaults();
+    final notifications = await _localState.getNotificationsEnabled();
+    if (!mounted) return;
+    setState(() => _notificationsEnabled = notifications);
+  }
+
+  Future<void> _toggleNotifications(bool value) async {
+    await _localState.setNotificationsEnabled(value);
+    if (!mounted) return;
+    setState(() => _notificationsEnabled = value);
+    CustomSnackbar.show(
+      context: context,
+      message: value ? 'Notifications enabled' : 'Notifications disabled',
+      type: SnackbarType.info,
+    );
+  }
+
+  Future<void> _editProfile() async {
+    final name = TextEditingController(text: await _localState.getName());
+    final phone = TextEditingController(text: await _localState.getPhone());
+    final email = TextEditingController(text: await _localState.getEmail());
+
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Edit Profile'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: name,
+                  decoration: const InputDecoration(labelText: 'Full Name'),
+                ),
+                TextField(
+                  controller: phone,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(labelText: 'Phone Number'),
+                ),
+                TextField(
+                  controller: email,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                if (name.text.trim().isEmpty ||
+                    phone.text.trim().isEmpty ||
+                    email.text.trim().isEmpty) {
+                  return;
+                }
+                await _localState.updateProfile(
+                  name: name.text,
+                  phone: phone.text,
+                  email: email.text,
+                );
+                if (!dialogContext.mounted) return;
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted) return;
+    CustomSnackbar.show(
+      context: context,
+      message: 'Profile updated successfully',
+      type: SnackbarType.success,
+    );
+    setState(() {});
+  }
+
+  Future<void> _logout() async {
+    await AuthService().logout();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AuthChoiceScreen()),
+      (route) => false,
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +154,11 @@ class AccountSettingsScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 AccountSectionGroup(children: [
                   AccountMenuItem(
+                    icon: Icons.person_outline_rounded,
+                    title: 'Edit Profile',
+                    onTap: _editProfile,
+                  ),
+                  AccountMenuItem(
                     icon: Icons.receipt_long_rounded,
                     title: 'Transaction History',
                     onTap: () {
@@ -68,6 +188,21 @@ class AccountSettingsScreen extends StatelessWidget {
                     },
                   ),
                   _buildLinkCardItem(context),
+                  AccountMenuItem(
+                    icon: _notificationsEnabled
+                        ? Icons.notifications_active_rounded
+                        : Icons.notifications_off_rounded,
+                    title: _notificationsEnabled
+                        ? 'Disable Notifications'
+                        : 'Enable Notifications',
+                    onTap: () => _toggleNotifications(!_notificationsEnabled),
+                  ),
+                  AccountMenuItem(
+                    icon: Icons.logout_rounded,
+                    title: 'Logout',
+                    isDestructive: true,
+                    onTap: _logout,
+                  ),
                 ]),
               ],
             ),

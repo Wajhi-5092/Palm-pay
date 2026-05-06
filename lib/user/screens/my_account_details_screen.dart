@@ -1,9 +1,62 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:paypalm/services/local_app_state_service.dart';
+import 'package:paypalm/user/modules/add_cash/add_cash_demo_money_screen.dart';
 import 'package:paypalm/user/widgets/transaction/transaction_list.dart';
+import 'package:paypalm/widgets/custom_snackbar.dart';
 
-class MyAccountDetailsScreen extends StatelessWidget {
+class MyAccountDetailsScreen extends StatefulWidget {
   const MyAccountDetailsScreen({super.key});
+
+  @override
+  State<MyAccountDetailsScreen> createState() => _MyAccountDetailsScreenState();
+}
+
+class _MyAccountDetailsScreenState extends State<MyAccountDetailsScreen> {
+  final LocalAppStateService _localState = LocalAppStateService();
+  double _balance = LocalAppStateService.defaultBalance;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBalance();
+  }
+
+  Future<void> _loadBalance() async {
+    await _localState.ensureDefaults();
+    final balance = await _localState.getBalance();
+    if (!mounted) return;
+    setState(() => _balance = balance);
+  }
+
+  String _formatBalance(double value) {
+    final parts = value.toStringAsFixed(2).split('.');
+    final whole = parts[0];
+    final buffer = StringBuffer();
+    for (int i = 0; i < whole.length; i++) {
+      final reverseIndex = whole.length - i;
+      buffer.write(whole[i]);
+      if (reverseIndex > 1 && reverseIndex % 3 == 1) {
+        buffer.write(',');
+      }
+    }
+    return 'Rs. ${buffer.toString()}.${parts[1]}';
+  }
+
+  Future<void> _openAddCashModule() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AddCashDemoMoneyScreen()),
+    );
+    await _loadBalance();
+  }
+
+  void _showLinkComingSoon() {
+    CustomSnackbar.show(
+      context: context,
+      message: 'Link bank account/card will be available in future update',
+      type: SnackbarType.info,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +92,7 @@ class MyAccountDetailsScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            _buildSummaryTab(context, primaryBlue),
+            _buildSummaryTab(primaryBlue),
             const TransactionList(),
           ],
         ),
@@ -47,7 +100,7 @@ class MyAccountDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryTab(BuildContext context, Color themeColor) {
+  Widget _buildSummaryTab(Color themeColor) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(20),
@@ -65,7 +118,7 @@ class MyAccountDetailsScreen extends StatelessWidget {
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
           const SizedBox(height: 20),
-          _buildDashedLinkButton(),
+          _buildDashedLinkButton(context),
         ],
       ),
     );
@@ -116,7 +169,7 @@ class MyAccountDetailsScreen extends StatelessWidget {
                         // 🔥 Prevent overflow
                         Expanded(
                           child: Text(
-                            'Rs. 10,090.86',
+                            _formatBalance(_balance),
                             overflow: TextOverflow.clip,
                             style: TextStyle(
                               fontSize: isSmall ? 22 : 28,
@@ -128,7 +181,7 @@ class MyAccountDetailsScreen extends StatelessWidget {
                         SizedBox(width: width * 0.03),
 
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: _openAddCashModule,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor:
@@ -164,49 +217,58 @@ class MyAccountDetailsScreen extends StatelessWidget {
         ));
   }
 
-  Widget _buildDashedLinkButton() {
-    return Container(
-      width: 140,
-      height: 200,
-      decoration: BoxDecoration(
-        color: Colors.white,
+  Widget _buildDashedLinkButton(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth * 0.38).clamp(140.0, 220.0);
+    final cardHeight = (cardWidth * 1.35).clamp(190.0, 280.0);
+
+    return SizedBox(
+      width: cardWidth,
+      height: cardHeight,
+      child: InkWell(
         borderRadius: BorderRadius.circular(16),
+        onTap: _showLinkComingSoon,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: _DashedContainer(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final isSmall = width < 160;
+
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.add_circle_outline,
+                      size: isSmall ? 32 : 40,
+                      color: Colors.black,
+                    ),
+                    SizedBox(height: width * 0.05),
+                    SizedBox(
+                      width: width,
+                      child: Text(
+                        'Link Any Bank\nAccount or\nCard',
+                        textAlign: TextAlign.center,
+                        softWrap: true,
+                        overflow: TextOverflow.visible,
+                        style: TextStyle(
+                          fontSize: isSmall ? 10 : 12,
+                          color: Colors.grey,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
       ),
-      child: _DashedContainer(child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          final isSmall = width < 350;
-
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.add_circle_outline,
-                size: isSmall ? 34 : 40,
-                color: Colors.black,
-              ),
-
-              SizedBox(height: width * 0.04),
-
-              // 🔥 FIX: constrain + allow wrap properly
-              SizedBox(
-                width: width,
-                child: Text(
-                  'Link Any Bank\nAccount or\nCard',
-                  textAlign: TextAlign.center,
-                  softWrap: true,
-                  overflow: TextOverflow.visible,
-                  style: TextStyle(
-                    fontSize: isSmall ? 10 : 12,
-                    color: Colors.grey,
-                    height: 1.5,
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      )),
     );
   }
 }

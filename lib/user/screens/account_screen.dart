@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:paypalm/screens/auth_choice_screen.dart';
+import 'package:paypalm/services/auth_service.dart';
+import 'package:paypalm/user/modules/account/account_feature_placeholder_screen.dart';
+import 'package:paypalm/user/modules/security/security_settings_screen.dart';
 import 'package:paypalm/user/widgets/account/menu_item.dart';
 import 'package:paypalm/user/widgets/account/profile_section.dart';
+import 'package:paypalm/widgets/custom_snackbar.dart';
 import 'favourites_screen.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -53,13 +58,29 @@ class AccountScreen extends StatelessWidget {
                         onTap: () =>
                             _navigateTo(context, const FavouritesScreen()),
                       ),
-                      const AccountMenuItem(
+                      AccountMenuItem(
                         icon: Icons.person_rounded,
                         title: 'Identity Verification',
+                        onTap: () => _navigateTo(
+                          context,
+                          const AccountFeaturePlaceholderScreen(
+                            title: 'Identity Verification',
+                            message:
+                                'Identity verification module will be enabled in a future release.',
+                          ),
+                        ),
                       ),
-                      const AccountMenuItem(
+                      AccountMenuItem(
                         icon: Icons.check_circle_outline_rounded,
                         title: 'My Approvals',
+                        onTap: () => _navigateTo(
+                          context,
+                          const AccountFeaturePlaceholderScreen(
+                            title: 'My Approvals',
+                            message:
+                                'Approval tracking module will be available soon.',
+                          ),
+                        ),
                       ),
                     ]),
 
@@ -67,13 +88,25 @@ class AccountScreen extends StatelessWidget {
 
                     // GROUP 2: Security & Settings
                     _build3DGroup([
-                      const AccountMenuItem(
+                      AccountMenuItem(
                         icon: Icons.security_rounded,
                         title: 'Security Settings',
+                        onTap: () => _navigateTo(
+                          context,
+                          const SecuritySettingsScreen(),
+                        ),
                       ),
-                      const AccountMenuItem(
+                      AccountMenuItem(
                         icon: Icons.notifications_none_rounded,
                         title: 'Notification Settings',
+                        onTap: () => _navigateTo(
+                          context,
+                          const AccountFeaturePlaceholderScreen(
+                            title: 'Notification Settings',
+                            message:
+                                'Notification settings are unchanged for now, as requested.',
+                          ),
+                        ),
                       ),
                     ]),
 
@@ -81,10 +114,34 @@ class AccountScreen extends StatelessWidget {
 
                     // Logout Action
                     _build3DGroup([
-                      const AccountMenuItem(
+                      AccountMenuItem(
                         icon: Icons.logout_rounded,
                         title: 'Logout',
                         isDestructive: true,
+                        onTap: () async {
+                          await AuthService().logout();
+                          if (!context.mounted) return;
+                          CustomSnackbar.show(
+                            context: context,
+                            message: 'You are now logged out',
+                            type: SnackbarType.info,
+                          );
+                          Navigator.of(context).pushAndRemoveUntil(
+                            PageRouteBuilder(
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      const AuthChoiceScreen(),
+                              transitionsBuilder: (context, animation,
+                                  secondaryAnimation, child) {
+                                return FadeTransition(
+                                    opacity: animation, child: child);
+                              },
+                              transitionDuration:
+                                  const Duration(milliseconds: 300),
+                            ),
+                            (route) => false,
+                          );
+                        },
                       ),
                     ]),
 

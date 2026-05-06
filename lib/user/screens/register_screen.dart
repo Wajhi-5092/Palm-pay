@@ -496,9 +496,12 @@ class _AmbientGlow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shortestSide = MediaQuery.of(context).size.shortestSide;
+    final glowSize = (shortestSide * 0.75).clamp(220.0, 360.0);
+
     return Container(
-      width: 300,
-      height: 300,
+      width: glowSize,
+      height: glowSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color,

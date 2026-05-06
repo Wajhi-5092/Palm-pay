@@ -11,6 +11,7 @@ class AuthChoiceScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final height = size.height;
     final width = size.width;
+    final glowSize = (size.shortestSide * 0.7).clamp(200.0, 320.0);
 
     // Responsive scaling
     final isSmall = height < 700;
@@ -38,8 +39,8 @@ class AuthChoiceScreen extends StatelessWidget {
             top: -100,
             right: -50,
             child: Container(
-              width: 250,
-              height: 250,
+              width: glowSize,
+              height: glowSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: const Color(0xFF3A86FF).withValues(alpha: 0.15),

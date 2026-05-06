@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:paypalm/services/auth_service.dart';
 import 'package:paypalm/user/screens/account_screen.dart';
 import 'package:paypalm/screens/auth_choice_screen.dart';
+import 'package:paypalm/widgets/custom_snackbar.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
@@ -116,7 +118,14 @@ class HomeHeader extends StatelessWidget {
                   _buildIconButton(
                     Icons.logout,
                     const Color.fromARGB(255, 108, 9, 9),
-                    onTap: () {
+                    onTap: () async {
+                      await AuthService().logout();
+                      if (!context.mounted) return;
+                      CustomSnackbar.show(
+                        context: context,
+                        message: 'Logged out successfully',
+                        type: SnackbarType.info,
+                      );
                       Navigator.of(context).pushAndRemoveUntil(
                         PageRouteBuilder(
                           pageBuilder:

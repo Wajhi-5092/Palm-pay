@@ -1,7 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:paypalm/screens/auth_choice_screen.dart';
+import 'package:paypalm/services/auth_service.dart';
+import 'package:paypalm/services/local_app_state_service.dart';
+import 'package:paypalm/widgets/custom_snackbar.dart';
 
-class MerchantSettingsScreen extends StatelessWidget {
+class MerchantSettingsScreen extends StatefulWidget {
   const MerchantSettingsScreen({super.key});
+
+  @override
+  State<MerchantSettingsScreen> createState() => _MerchantSettingsScreenState();
+}
+
+class _MerchantSettingsScreenState extends State<MerchantSettingsScreen> {
+  final LocalAppStateService _localState = LocalAppStateService();
+  bool _notificationsEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    await _localState.ensureDefaults();
+    final enabled = await _localState.getNotificationsEnabled();
+    if (!mounted) return;
+    setState(() => _notificationsEnabled = enabled);
+  }
+
+  Future<void> _logout() async {
+    await AuthService().logout();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AuthChoiceScreen()),
+      (route) => false,
+    );
+  }
+
+  void _showComingSoon(String feature) {
+    CustomSnackbar.show(
+      context: context,
+      message: '$feature setup will be available in next update',
+      type: SnackbarType.info,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,18 +83,21 @@ class MerchantSettingsScreen extends StatelessWidget {
                     title: 'Business Profile',
                     subtitle: 'Manage store details, tax ID, and hours',
                     iconColor: const Color(0xFF3A86FF),
+                    onTap: () => _showComingSoon('Business profile'),
                   ),
                   _buildSettingsItem(
                     icon: Icons.fingerprint_rounded,
                     title: 'Palm Terminals',
                     subtitle: 'Add, update or remove scanning devices',
                     iconColor: const Color(0xFF00D1B2),
+                    onTap: () => _showComingSoon('Palm terminals'),
                   ),
                   _buildSettingsItem(
                     icon: Icons.group_add_rounded,
                     title: 'Staff Accounts',
                     subtitle: 'Manage employees and permissions',
                     iconColor: const Color(0xFF8B5CF6),
+                    onTap: () => _showComingSoon('Staff account'),
                   ),
 
                   const SizedBox(height: 24),
@@ -64,12 +109,14 @@ class MerchantSettingsScreen extends StatelessWidget {
                     title: 'Bank Accounts',
                     subtitle: 'Manage automatic withdrawal routing',
                     iconColor: const Color(0xFFF59E0B),
+                    onTap: () => _showComingSoon('Bank account'),
                   ),
                   _buildSettingsItem(
                     icon: Icons.receipt_long_rounded,
                     title: 'Taxes & Invoicing',
                     subtitle: 'Configure automated receipt creation',
                     iconColor: const Color(0xFFEC4899),
+                    onTap: () => _showComingSoon('Tax and invoicing'),
                   ),
 
                   const SizedBox(height: 24),
@@ -82,8 +129,12 @@ class MerchantSettingsScreen extends StatelessWidget {
                     subtitle: 'Alerts for payments and transfers',
                     iconColor: const Color(0xFF3A86FF),
                     trailing: Switch(
-                      value: true,
-                      onChanged: (val) {},
+                      value: _notificationsEnabled,
+                      onChanged: (val) async {
+                        await _localState.setNotificationsEnabled(val);
+                        if (!mounted) return;
+                        setState(() => _notificationsEnabled = val);
+                      },
                       activeThumbColor: const Color(0xFF3A86FF),
                     ),
                   ),
@@ -92,6 +143,7 @@ class MerchantSettingsScreen extends StatelessWidget {
                     title: 'Security & Biometrics',
                     subtitle: 'App PIN, lock timeout and 2FA',
                     iconColor: const Color(0xFF64748B),
+                    onTap: () => _showComingSoon('Security controls'),
                   ),
 
                   const SizedBox(height: 32),
@@ -102,7 +154,7 @@ class MerchantSettingsScreen extends StatelessWidget {
                     height: 56,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Navigation to auth screen or logout logic
+                        _logout();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFEF2F2),
@@ -221,68 +273,73 @@ class MerchantSettingsScreen extends StatelessWidget {
     required String subtitle,
     required Color iconColor,
     Widget? trailing,
+    VoidCallback? onTap,
   }) {
     const Color textPrimary = Color(0xFF1E293B);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            child: Icon(icon, color: iconColor, size: 22),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: textPrimary,
-                    fontSize: 15,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: iconColor, size: 22),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: textPrimary,
+                      fontSize: 15,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: textPrimary.withValues(alpha: 0.5),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: textPrimary.withValues(alpha: 0.5),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          if (trailing != null)
-            trailing
-          else
-            Icon(
-              Icons.chevron_right_rounded,
-              color: textPrimary.withValues(alpha: 0.3),
-              size: 24,
-            ),
-        ],
+            if (trailing != null)
+              trailing
+            else
+              Icon(
+                Icons.chevron_right_rounded,
+                color: textPrimary.withValues(alpha: 0.3),
+                size: 24,
+              ),
+          ],
+        ),
       ),
     );
   }

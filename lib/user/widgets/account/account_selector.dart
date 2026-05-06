@@ -1,7 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:paypalm/services/local_app_state_service.dart';
+import 'package:paypalm/widgets/custom_snackbar.dart';
 
-class AccountSelector extends StatelessWidget {
+class AccountSelector extends StatefulWidget {
   const AccountSelector({super.key});
+
+  @override
+  State<AccountSelector> createState() => _AccountSelectorState();
+}
+
+class _AccountSelectorState extends State<AccountSelector> {
+  final LocalAppStateService _localState = LocalAppStateService();
+  String _name = 'PayPalm User';
+  String _phone = '0318 3116227';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    await _localState.ensureDefaults();
+    final name = await _localState.getName();
+    final phone = await _localState.getPhone();
+    if (!mounted) return;
+    setState(() {
+      _name = name;
+      _phone = phone;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +81,8 @@ class AccountSelector extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'PayPalm Account',
+                  Text(
+                    _name,
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 15,
@@ -62,7 +90,7 @@ class AccountSelector extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '03183116227',
+                    _phone,
                     style: TextStyle(
                       color: Colors.grey.shade600,
                       fontSize: 13,
@@ -153,8 +181,8 @@ class AccountSelector extends StatelessWidget {
 
               // 5. Active Account (Selected Look)
               _buildAccountTile(
-                title: 'PayPalm Account',
-                subtitle: '03183116227',
+                title: _name,
+                subtitle: _phone,
                 icon: Icons.account_balance_wallet_rounded,
                 isSelected: true,
               ),
@@ -168,6 +196,14 @@ class AccountSelector extends StatelessWidget {
                 icon: Icons.add_rounded,
                 isSelected: false,
                 isAction: true,
+                onTap: () {
+                  Navigator.pop(context);
+                  CustomSnackbar.show(
+                    context: context,
+                    message: 'Multi-account support is coming soon',
+                    type: SnackbarType.info,
+                  );
+                },
               ),
               const SizedBox(height: 24),
             ],
@@ -183,75 +219,80 @@ class AccountSelector extends StatelessWidget {
     required IconData icon,
     required bool isSelected,
     bool isAction = false,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.white : Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected
-              ? const Color.fromARGB(255, 0, 95, 142)
-              : Colors.transparent,
-          width: 2,
-        ),
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: const Color.fromARGB(
-                    255,
-                    0,
-                    95,
-                    142,
-                  ).withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : [],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isAction
-                  ? Colors.green.withValues(alpha: 0.1)
-                  : Colors.grey.shade200,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              color: isAction ? Colors.green : Colors.black87,
-              size: 24,
-            ),
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? const Color.fromARGB(255, 0, 95, 142)
+                : Colors.transparent,
+            width: 2,
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color.fromARGB(
+                      255,
+                      0,
+                      95,
+                      142,
+                    ).withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-                Text(
-                  subtitle,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                ),
-              ],
+                ]
+              : [],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isAction
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : Colors.grey.shade200,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: isAction ? Colors.green : Colors.black87,
+                size: 24,
+              ),
             ),
-          ),
-          if (isSelected)
-            const Icon(
-              Icons.check_circle_rounded,
-              color: Color.fromARGB(255, 0, 95, 142),
-              size: 26,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  ),
+                ],
+              ),
             ),
-        ],
+            if (isSelected)
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Color.fromARGB(255, 0, 95, 142),
+                size: 26,
+              ),
+          ],
+        ),
       ),
     );
   }

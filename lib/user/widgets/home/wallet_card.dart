@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:paypalm/services/local_app_state_service.dart';
+import 'package:paypalm/user/modules/add_cash/add_cash_demo_money_screen.dart';
 
 class WalletCard extends StatefulWidget {
   const WalletCard({super.key});
@@ -9,6 +11,42 @@ class WalletCard extends StatefulWidget {
 
 class _WalletCardState extends State<WalletCard> {
   bool _isBalanceVisible = true;
+  double _balance = LocalAppStateService.defaultBalance;
+  final LocalAppStateService _localState = LocalAppStateService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBalance();
+  }
+
+  Future<void> _loadBalance() async {
+    await _localState.ensureDefaults();
+    final balance = await _localState.getBalance();
+    if (!mounted) return;
+    setState(() => _balance = balance);
+  }
+
+  String _formatBalance(double value) {
+    final parts = value.toStringAsFixed(2).split('.');
+    final whole = parts[0];
+    final buffer = StringBuffer();
+    for (int i = 0; i < whole.length; i++) {
+      final reverseIndex = whole.length - i;
+      buffer.write(whole[i]);
+      if (reverseIndex > 1 && reverseIndex % 3 == 1) {
+        buffer.write(',');
+      }
+    }
+    return 'Rs. ${buffer.toString()}.${parts[1]}';
+  }
+
+  Future<void> _openDemoMoneyPage(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AddCashDemoMoneyScreen()),
+    );
+    await _loadBalance();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +166,7 @@ class _WalletCardState extends State<WalletCard> {
                             Expanded(
                               child: Text(
                                 _isBalanceVisible
-                                    ? 'Rs. 10,090.86'
+                                    ? _formatBalance(_balance)
                                     : 'Rs. •••••••',
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -171,7 +209,10 @@ class _WalletCardState extends State<WalletCard> {
                                 ),
                               ),
                             ),
-                            _buildPremiumButton('Add Cash', isSmall),
+                            GestureDetector(
+                              onTap: () => _openDemoMoneyPage(context),
+                              child: _buildPremiumButton('Add Cash', isSmall),
+                            ),
                           ],
                         ),
                       ],

@@ -1,10 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:paypalm/services/local_app_state_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final LocalAppStateService _localState = LocalAppStateService();
 
   Future<void> _setLoginState(bool isLoggedIn) async {
     final prefs = await SharedPreferences.getInstance();
@@ -37,6 +39,7 @@ class AuthService {
 
       // Save persistent state
       await _setLoginState(true);
+      await _localState.ensureDefaults();
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -85,6 +88,7 @@ class AuthService {
 
       // Save persistent state
       await _setLoginState(true);
+      await _localState.ensureDefaults();
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
