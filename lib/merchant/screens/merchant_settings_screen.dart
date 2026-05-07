@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:paypalm/screens/auth_choice_screen.dart';
 import 'package:paypalm/services/auth_service.dart';
 import 'package:paypalm/services/local_app_state_service.dart';
+import 'package:paypalm/services/merchant_service.dart';
+import 'package:paypalm/models/merchant_model.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
+import 'merchant_profile_edit_screen.dart';
 
 class MerchantSettingsScreen extends StatefulWidget {
   const MerchantSettingsScreen({super.key});
@@ -13,19 +16,27 @@ class MerchantSettingsScreen extends StatefulWidget {
 
 class _MerchantSettingsScreenState extends State<MerchantSettingsScreen> {
   final LocalAppStateService _localState = LocalAppStateService();
+  final MerchantService _merchantService = MerchantService();
   bool _notificationsEnabled = true;
+  Merchant? _merchant;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadSettings();
+    _loadData();
   }
 
-  Future<void> _loadSettings() async {
+  Future<void> _loadData() async {
     await _localState.ensureDefaults();
     final enabled = await _localState.getNotificationsEnabled();
-    if (!mounted) return;
-    setState(() => _notificationsEnabled = enabled);
+    _merchant = await _merchantService.getCurrentMerchant();
+    if (mounted) {
+      setState(() {
+        _notificationsEnabled = enabled;
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _logout() async {
@@ -83,7 +94,14 @@ class _MerchantSettingsScreenState extends State<MerchantSettingsScreen> {
                     title: 'Business Profile',
                     subtitle: 'Manage store details, tax ID, and hours',
                     iconColor: const Color(0xFF3A86FF),
-                    onTap: () => _showComingSoon('Business profile'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                const MerchantProfileEditScreen()),
+                      ).then((_) => _loadData()); // Reload after edit
+                    },
                   ),
                   _buildSettingsItem(
                     icon: Icons.fingerprint_rounded,
@@ -187,6 +205,18 @@ class _MerchantSettingsScreenState extends State<MerchantSettingsScreen> {
     const Color textPrimary = Color(0xFF1E293B);
     const Color accentBlue = Color(0xFF3A86FF);
 
+    if (_isLoading || _merchant == null) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -222,9 +252,9 @@ class _MerchantSettingsScreenState extends State<MerchantSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Fresh Market LLC',
-                  style: TextStyle(
+                Text(
+                  _merchant!.storeName,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                     color: textPrimary,
@@ -232,11 +262,11 @@ class _MerchantSettingsScreenState extends State<MerchantSettingsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'ID: #88291 • Verified',
-                  style: TextStyle(
+                  'ID: ${_merchant!.merchantId} • Verified',
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF00D1B2),
+                    color: Color(0xFF00D1B2),
                   ),
                 ),
               ],

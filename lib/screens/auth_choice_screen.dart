@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../user/screens/login_screen.dart';
-import '../merchant/screens/merchant_home_screen.dart';
+import '../merchant/screens/merchant_login_screen.dart';
 
 class AuthChoiceScreen extends StatelessWidget {
   const AuthChoiceScreen({super.key});
@@ -144,7 +144,7 @@ class AuthChoiceScreen extends StatelessWidget {
                         isSmall: isSmall,
                         onPressed: () => _navigate(
                           context,
-                          const MerchantHomeScreen(),
+                          const MerchantLoginScreen(),
                         ),
                       ),
 

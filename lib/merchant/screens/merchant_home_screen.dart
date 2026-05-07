@@ -1,12 +1,15 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:paypalm/services/auth_service.dart';
+import 'package:paypalm/services/merchant_service.dart';
+import 'package:paypalm/models/merchant_model.dart';
 import '../widgets/merchant_balance_card.dart';
 import '../widgets/merchant_action_card.dart';
 import '../widgets/merchant_transaction_list.dart';
 import 'merchant_sales_screen.dart';
 import 'merchant_history_screen.dart';
 import 'merchant_settings_screen.dart';
+import 'merchant_withdrawal_screen.dart';
 import 'package:paypalm/screens/auth_choice_screen.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
 
@@ -19,6 +22,11 @@ class MerchantHomeScreen extends StatefulWidget {
 
 class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
   int _selectedIndex = 0;
+  Merchant? _merchant;
+  Map<String, dynamic>? _stats;
+  bool _isLoading = true;
+
+  final _merchantService = MerchantService();
 
   // Light Mode Palette
   static const Color bgGradientStart = Color(0xFFF8FAFC); // Very light slate
@@ -31,12 +39,34 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
   @override
   void initState() {
     super.initState();
+    _loadMerchantData();
     _pages = [
       _buildDashboard(),
       const MerchantSalesScreen(),
       const MerchantHistoryScreen(),
       const MerchantSettingsScreen(),
     ];
+  }
+
+  Future<void> _loadMerchantData() async {
+    try {
+      _merchant = await _merchantService.getCurrentMerchant();
+      if (_merchant != null) {
+        _stats = await _merchantService.getMerchantStats(_merchant!.id);
+      } else {
+        // Merchant data not found - user may have been logged out
+        if (mounted) {
+          // Only redirect if explicitly needed
+          print('Warning: Merchant data not found');
+        }
+      }
+    } catch (e) {
+      print('Error loading merchant data: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   Widget _buildDashboard() {
@@ -54,7 +84,7 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Merchant Dashboard',
+                      _merchant?.storeName ?? 'Merchant Dashboard',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
@@ -64,7 +94,7 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Store ID: #88291',
+                      'ID: ${_merchant?.merchantId ?? ''}',
                       style: TextStyle(
                         color: textPrimary.withValues(alpha: 0.5),
                         fontWeight: FontWeight.w500,
@@ -87,7 +117,16 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       // Balance Card
-                      const MerchantBalanceCard(),
+                      _isLoading
+                          ? const SizedBox(
+                              height: 200,
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          : MerchantBalanceCard(
+                              balance: _merchant?.walletBalance ?? 0.0,
+                              todayEarnings: _stats?['todaySales'] ?? 0.0,
+                              weeklyEarnings: _stats?['weeklySales'] ?? 0.0,
+                            ),
 
                       const SizedBox(height: 32),
 
@@ -117,6 +156,14 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
                               icon: Icons.account_balance_rounded,
                               title: 'Withdraw',
                               color: accentBlue,
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const MerchantWithdrawalScreen()),
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -148,7 +195,14 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
                         ],
                       ),
 
-                      const MerchantTransactionList(),
+                      _isLoading
+                          ? const SizedBox(
+                              height: 200,
+                              child: Center(child: CircularProgressIndicator()))
+                          : MerchantTransactionList(
+                              transactionsStream: _merchantService
+                                  .getMerchantTransactions(_merchant!.id),
+                            ),
                       const SizedBox(height: 30),
                     ]),
                   ),

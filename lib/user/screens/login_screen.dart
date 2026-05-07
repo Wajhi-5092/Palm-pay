@@ -1,10 +1,15 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:ui';
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'register_screen.dart';
 import 'package:paypalm/services/auth_service.dart';
 import 'package:paypalm/services/mpin_service.dart';
+import 'package:paypalm/services/connectivity_service.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +24,34 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
   final MpinService _mpinService = MpinService();
+  final ConnectivityService _connectivity = ConnectivityService();
+
+  @override
+  void initState() {
+    super.initState();
+    _setScreenSecure(true);
+  }
+
+  @override
+  void dispose() {
+    _setScreenSecure(false);
+    _identifierController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _setScreenSecure(bool secure) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      if (secure) {
+        await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+      } else {
+        await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+      }
+    } catch (_) {
+      // Platform may not support secure window flags.
+    }
+  }
 
   Future<void> _handleLogin() async {
     // Dismiss the keyboard instantly so the Snackbar renders completely at the bottom
@@ -34,6 +67,45 @@ class _LoginScreenState extends State<LoginScreen> {
         type: SnackbarType.warning,
       );
       return;
+    }
+
+    if (!await _connectivity.isInternetAvailable()) {
+      if (!mounted) return;
+      final dialogFuture = showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) {
+          return AlertDialog(
+            title: const Text('No Internet Connection'),
+            content: Row(
+              children: [
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    'Waiting for connection…',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      try {
+        await _connectivity.onInternetAvailable.firstWhere((v) => v == true);
+      } finally {
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+      }
+
+      await dialogFuture;
     }
 
     setState(() => _isLoading = true);
@@ -73,6 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final mpinController = TextEditingController();
     final confirmController = TextEditingController();
     bool enableOnReopen = true;
+    int mpinLength = 4;
 
     await showDialog<void>(
       context: context,
@@ -86,13 +159,44 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
-                      'Create a 4-digit MPIN to login instantly when reopening the app.',
+                      'Create your MPIN to login instantly when reopening the app.',
                     ),
                     const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<int>(
+                            contentPadding: EdgeInsets.zero,
+                            value: 4,
+                            groupValue: mpinLength,
+                            onChanged: (v) {
+                              setDialogState(() => mpinLength = v ?? 4);
+                              mpinController.clear();
+                              confirmController.clear();
+                            },
+                            title: const Text('4-digit'),
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<int>(
+                            contentPadding: EdgeInsets.zero,
+                            value: 6,
+                            groupValue: mpinLength,
+                            onChanged: (v) {
+                              setDialogState(() => mpinLength = v ?? 6);
+                              mpinController.clear();
+                              confirmController.clear();
+                            },
+                            title: const Text('6-digit'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
                     TextField(
                       controller: mpinController,
                       keyboardType: TextInputType.number,
-                      maxLength: 4,
+                      maxLength: mpinLength,
                       obscureText: true,
                       decoration: const InputDecoration(
                         labelText: 'MPIN',
@@ -102,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextField(
                       controller: confirmController,
                       keyboardType: TextInputType.number,
-                      maxLength: 4,
+                      maxLength: mpinLength,
                       obscureText: true,
                       decoration: const InputDecoration(
                         labelText: 'Confirm MPIN',
@@ -129,7 +233,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () async {
                     final mpin = mpinController.text.trim();
                     final confirm = confirmController.text.trim();
-                    if (mpin.length != 4 || int.tryParse(mpin) == null) {
+                    if (mpin.length != mpinLength ||
+                        int.tryParse(mpin) == null) {
                       return;
                     }
                     if (mpin != confirm) {

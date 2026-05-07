@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 
 class MerchantBalanceCard extends StatelessWidget {
-  const MerchantBalanceCard({super.key});
+  final double balance;
+  final double todayEarnings;
+  final double weeklyEarnings;
+
+  const MerchantBalanceCard({
+    super.key,
+    required this.balance,
+    required this.todayEarnings,
+    required this.weeklyEarnings,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +72,9 @@ class MerchantBalanceCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              const Text(
-                '\$12,450.00',
-                style: TextStyle(
+              Text(
+                'Rs ${balance.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 38,
                   fontWeight: FontWeight.w900,
@@ -87,14 +96,18 @@ class MerchantBalanceCard extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Expanded(child: _buildStatItem('Today', '+\$450.00')),
+                    Expanded(
+                        child: _buildStatItem('Today',
+                            '+Rs ${todayEarnings.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}')),
                     Container(
                       height: 30,
                       width: 1,
                       color: Colors.white.withValues(alpha: 0.1),
                     ),
                     const SizedBox(width: 24),
-                    Expanded(child: _buildStatItem('This Week', '+\$2,100.00')),
+                    Expanded(
+                        child: _buildStatItem('This Week',
+                            '+Rs ${weeklyEarnings.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}')),
                   ],
                 ),
               ),

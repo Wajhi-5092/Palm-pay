@@ -1,8 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:paypalm/services/merchant_service.dart';
+import 'package:paypalm/models/merchant_model.dart';
 import '../widgets/merchant_transaction_list.dart';
 
-class MerchantHistoryScreen extends StatelessWidget {
+class MerchantHistoryScreen extends StatefulWidget {
   const MerchantHistoryScreen({super.key});
+
+  @override
+  State<MerchantHistoryScreen> createState() => _MerchantHistoryScreenState();
+}
+
+class _MerchantHistoryScreenState extends State<MerchantHistoryScreen> {
+  Merchant? _merchant;
+  final _merchantService = MerchantService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMerchant();
+  }
+
+  Future<void> _loadMerchant() async {
+    _merchant = await _merchantService.getCurrentMerchant();
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,11 +61,13 @@ class MerchantHistoryScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-            const Expanded(
-              child: SingleChildScrollView(
-                physics: BouncingScrollPhysics(),
-                child: MerchantTransactionList(),
-              ),
+            Expanded(
+              child: _merchant == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : MerchantTransactionList(
+                      transactionsStream: _merchantService
+                          .getMerchantTransactions(_merchant!.id),
+                    ),
             ),
           ],
         ),

@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:paypalm/services/mpin_service.dart';
@@ -14,6 +16,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   final _mpinService = MpinService();
   bool _hasMpin = false;
   bool _enableMpinOnReopen = false;
+  int _mpinLength = 4;
 
   @override
   void initState() {
@@ -24,10 +27,12 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   Future<void> _loadSecurityState() async {
     final hasMpin = await _mpinService.hasMpin();
     final enableMpinOnReopen = await _mpinService.isEnabledOnReopen();
+    final mpinLength = await _mpinService.getMpinLength();
     if (!mounted) return;
     setState(() {
       _hasMpin = hasMpin;
       _enableMpinOnReopen = enableMpinOnReopen;
+      _mpinLength = (mpinLength == 4 || mpinLength == 6) ? mpinLength : 4;
     });
   }
 
@@ -35,110 +40,159 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
     final currentController = TextEditingController();
     final newController = TextEditingController();
     final confirmController = TextEditingController();
+    int newLength = _mpinLength;
 
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(_hasMpin ? 'Change MPIN' : 'Set MPIN'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (_hasMpin)
-                  TextField(
-                    controller: currentController,
-                    keyboardType: TextInputType.number,
-                    maxLength: 4,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Current MPIN',
-                      counterText: '',
+        return StatefulBuilder(
+          builder: (dialogInnerContext, setDialogState) {
+            return AlertDialog(
+              title: Text(_hasMpin ? 'Change MPIN' : 'Set MPIN'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_hasMpin)
+                      TextField(
+                        controller: currentController,
+                        keyboardType: TextInputType.number,
+                        maxLength: _mpinLength,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Current MPIN',
+                          counterText: '',
+                        ),
+                      ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<int>(
+                            contentPadding: EdgeInsets.zero,
+                            value: 4,
+                            groupValue: newLength,
+                            onChanged: (v) {
+                              setDialogState(() => newLength = v ?? 4);
+                              newController.clear();
+                              confirmController.clear();
+                            },
+                            title: const Text('4-digit'),
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<int>(
+                            contentPadding: EdgeInsets.zero,
+                            value: 6,
+                            groupValue: newLength,
+                            onChanged: (v) {
+                              setDialogState(() => newLength = v ?? 6);
+                              newController.clear();
+                              confirmController.clear();
+                            },
+                            title: const Text('6-digit'),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                TextField(
-                  controller: newController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 4,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'New MPIN',
-                    counterText: '',
-                  ),
+                    TextField(
+                      controller: newController,
+                      keyboardType: TextInputType.number,
+                      maxLength: newLength,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'New MPIN',
+                        counterText: '',
+                      ),
+                    ),
+                    TextField(
+                      controller: confirmController,
+                      keyboardType: TextInputType.number,
+                      maxLength: newLength,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm MPIN',
+                        counterText: '',
+                      ),
+                    ),
+                  ],
                 ),
-                TextField(
-                  controller: confirmController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 4,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirm MPIN',
-                    counterText: '',
-                  ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
                 ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final newMpin = newController.text.trim();
-                final confirm = confirmController.text.trim();
+                FilledButton(
+                  onPressed: () async {
+                    final newMpin = newController.text.trim();
+                    final confirm = confirmController.text.trim();
 
-                if (newMpin.length != 4 || int.tryParse(newMpin) == null) {
-                  CustomSnackbar.show(
-                    context: dialogContext,
-                    message: 'MPIN must be 4 digits',
-                    type: SnackbarType.warning,
-                  );
-                  return;
-                }
+                    if (newMpin.length != newLength ||
+                        int.tryParse(newMpin) == null) {
+                      CustomSnackbar.show(
+                        context: dialogContext,
+                        message: 'MPIN must be $newLength digits',
+                        type: SnackbarType.warning,
+                      );
+                      return;
+                    }
 
-                if (newMpin != confirm) {
-                  CustomSnackbar.show(
-                    context: dialogContext,
-                    message: 'MPIN confirmation does not match',
-                    type: SnackbarType.warning,
-                  );
-                  return;
-                }
+                    if (newMpin != confirm) {
+                      CustomSnackbar.show(
+                        context: dialogContext,
+                        message: 'MPIN confirmation does not match',
+                        type: SnackbarType.warning,
+                      );
+                      return;
+                    }
 
-                if (_hasMpin) {
-                  final isCurrentValid =
-                      await _mpinService.verifyMpin(currentController.text);
+                    if (_hasMpin) {
+                      final verifyResult =
+                          await _mpinService.verifyMpin(currentController.text);
 
-                  if (!mounted) return;
+                      if (!mounted) return;
 
-                  if (!isCurrentValid) {
+                      if (verifyResult.state == MpinVerificationState.locked) {
+                        if (!dialogContext.mounted) return;
+                        CustomSnackbar.show(
+                          context: dialogContext,
+                          message:
+                              'Too many attempts. Try again in ${verifyResult.remainingSeconds ?? ''} seconds.',
+                          type: SnackbarType.error,
+                        );
+                        return;
+                      }
+
+                      if (verifyResult.state != MpinVerificationState.valid) {
+                        if (!dialogContext.mounted) return;
+                        CustomSnackbar.show(
+                          context: dialogContext,
+                          message: 'Current MPIN is incorrect',
+                          type: SnackbarType.error,
+                        );
+                        return;
+                      }
+                    }
+
+                    await _mpinService.setMpin(newMpin);
+                    if (!dialogContext.mounted) return;
+                    Navigator.pop(dialogContext);
+                    await _loadSecurityState();
+                    if (!mounted) return;
                     CustomSnackbar.show(
                       context: context,
-                      message: 'Current MPIN is incorrect',
-                      type: SnackbarType.error,
+                      message: _hasMpin
+                          ? 'MPIN changed successfully'
+                          : 'MPIN set successfully',
+                      type: SnackbarType.success,
                     );
-                    return;
-                  }
-                }
-
-                await _mpinService.setMpin(newMpin);
-                if (!dialogContext.mounted) return;
-                Navigator.pop(dialogContext);
-                await _loadSecurityState();
-                if (!mounted) return;
-                CustomSnackbar.show(
-                  context: context,
-                  message: _hasMpin
-                      ? 'MPIN changed successfully'
-                      : 'MPIN set successfully',
-                  type: SnackbarType.success,
-                );
-              },
-              child: const Text('Save'),
-            ),
-          ],
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -260,8 +314,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
               leading: const Icon(Icons.pin_outlined),
               title: Text(_hasMpin ? 'Change MPIN' : 'Set MPIN'),
               subtitle: Text(_hasMpin
-                  ? 'Update your 4-digit MPIN'
-                  : 'Create a 4-digit MPIN for quick login'),
+                  ? 'Update your $_mpinLength-digit MPIN'
+                  : 'Create a 4 or 6-digit MPIN for quick login'),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: _showSetOrChangeMpinDialog,
             ),

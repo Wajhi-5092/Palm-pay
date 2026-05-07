@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:paypalm/services/local_app_state_service.dart';
+import 'package:paypalm/services/auth_session_service.dart';
+import 'package:paypalm/services/mpin_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -40,6 +42,11 @@ class AuthService {
       // Save persistent state
       await _setLoginState(true);
       await _localState.ensureDefaults();
+      final user = userCredential.user;
+      if (user != null) {
+        // Persist encrypted session metadata for instant login.
+        await AuthSessionService().persistSessionFromUser(user, pendingRefresh: false);
+      }
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -89,6 +96,10 @@ class AuthService {
       // Save persistent state
       await _setLoginState(true);
       await _localState.ensureDefaults();
+      final user = userCredential.user;
+      if (user != null) {
+        await AuthSessionService().persistSessionFromUser(user, pendingRefresh: false);
+      }
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -97,8 +108,14 @@ class AuthService {
   }
 
   // Logout
-  Future<void> logout() async {
+  Future<void> logout({bool clearMpin = true}) async {
+    if (clearMpin) {
+      // Best-effort removal of MPIN metadata while user is still signed-in.
+      await MpinService().removeMpin();
+    }
+
     await _auth.signOut();
+    await AuthSessionService().clearSession();
     await _setLoginState(false);
   }
 

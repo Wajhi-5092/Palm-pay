@@ -76,7 +76,7 @@ class MerchantSalesScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    '\$4,892.50',
+                    'Rs 4,892.50',
                     style: TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.w900,
@@ -132,24 +132,6 @@ class MerchantSalesScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 32),
-
-            // 3. Top Selling Items
-            const Text(
-              'Top Payment Sources',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildSourceItem('Palm Scan Terminal 1', '68% of sales',
-                Icons.fingerprint_rounded, '\$3,326.90'),
-            _buildSourceItem('QR Code Online', '22% of sales',
-                Icons.qr_code_scanner_rounded, '\$1,076.35'),
-            _buildSourceItem('Manual Entry', '10% of sales',
-                Icons.keyboard_rounded, '\$489.25'),
-            const SizedBox(height: 40),
           ],
         ),
       ),
@@ -202,60 +184,6 @@ class MerchantSalesScreen extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSourceItem(
-      String title, String subtitle, IconData icon, String amount) {
-    const Color textPrimary = Color(0xFF1E293B);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E293B).withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: textPrimary, size: 22),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                      color: textPrimary),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                      color: textPrimary.withValues(alpha: 0.5),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            amount,
-            style: const TextStyle(
-                fontWeight: FontWeight.w800, fontSize: 15, color: textPrimary),
-          ),
-        ],
-      ),
     );
   }
 }
