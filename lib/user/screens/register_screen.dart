@@ -1,14 +1,12 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:ui';
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'package:paypalm/services/auth_service.dart';
 import 'package:paypalm/services/mpin_service.dart';
 import 'package:paypalm/services/connectivity_service.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -38,12 +36,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-    _setScreenSecure(true);
   }
 
   @override
   void dispose() {
-    _setScreenSecure(false);
     _nameController.dispose();
     _fathersNameController.dispose();
     _emailController.dispose();
@@ -54,19 +50,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
-  }
-
-  Future<void> _setScreenSecure(bool secure) async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
-    try {
-      if (secure) {
-        await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-      } else {
-        await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
-      }
-    } catch (_) {
-      // Best-effort only.
-    }
   }
 
   Future<void> _handleRegister() async {

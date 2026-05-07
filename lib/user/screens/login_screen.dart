@@ -1,7 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:ui';
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'register_screen.dart';
@@ -9,7 +8,6 @@ import 'package:paypalm/services/auth_service.dart';
 import 'package:paypalm/services/mpin_service.dart';
 import 'package:paypalm/services/connectivity_service.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -29,28 +27,13 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _setScreenSecure(true);
   }
 
   @override
   void dispose() {
-    _setScreenSecure(false);
     _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  Future<void> _setScreenSecure(bool secure) async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
-    try {
-      if (secure) {
-        await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-      } else {
-        await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
-      }
-    } catch (_) {
-      // Platform may not support secure window flags.
-    }
   }
 
   Future<void> _handleLogin() async {

@@ -14,6 +14,8 @@ class _MerchantHistoryScreenState extends State<MerchantHistoryScreen> {
   Merchant? _merchant;
   final _merchantService = MerchantService();
 
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -21,8 +23,13 @@ class _MerchantHistoryScreenState extends State<MerchantHistoryScreen> {
   }
 
   Future<void> _loadMerchant() async {
-    _merchant = await _merchantService.getCurrentMerchant();
-    if (mounted) setState(() {});
+    try {
+      _merchant = await _merchantService.getCurrentMerchant();
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -62,12 +69,14 @@ class _MerchantHistoryScreenState extends State<MerchantHistoryScreen> {
             ),
             const SizedBox(height: 24),
             Expanded(
-              child: _merchant == null
+              child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : MerchantTransactionList(
-                      transactionsStream: _merchantService
-                          .getMerchantTransactions(_merchant!.id),
-                    ),
+                  : _merchant == null
+                      ? const Center(child: Text('Merchant data not found'))
+                      : MerchantTransactionList(
+                          transactionsStream: _merchantService
+                              .getMerchantTransactions(_merchant!.id),
+                        ),
             ),
           ],
         ),

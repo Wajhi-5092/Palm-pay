@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:paypalm/screens/auth_choice_screen.dart';
 import 'package:paypalm/services/auth_service.dart';
@@ -40,25 +39,11 @@ class _MpinUnlockScreenState extends State<MpinUnlockScreen> {
   @override
   void initState() {
     super.initState();
-    _setScreenSecure(true);
     _loadInitialState();
     _internetSub = _connectivity.onInternetAvailable.listen((available) {
       if (!mounted) return;
       setState(() => _isOnline = available);
     });
-  }
-
-  Future<void> _setScreenSecure(bool secure) async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
-    try {
-      if (secure) {
-        await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-      } else {
-        await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
-      }
-    } catch (_) {
-      // Best-effort screenshot protection.
-    }
   }
 
   Future<void> _loadInitialState() async {
@@ -97,7 +82,6 @@ class _MpinUnlockScreenState extends State<MpinUnlockScreen> {
   @override
   void dispose() {
     _internetSub?.cancel();
-    _setScreenSecure(false);
     _mpinController.dispose();
     super.dispose();
   }

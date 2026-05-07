@@ -34,18 +34,25 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
   static const Color accentTeal = Color(0xFF00D1B2);
   static const Color textPrimary = Color(0xFF1E293B);
 
-  late final List<Widget> _pages;
-
   @override
   void initState() {
     super.initState();
     _loadMerchantData();
-    _pages = [
-      _buildDashboard(),
-      const MerchantSalesScreen(),
-      const MerchantHistoryScreen(),
-      const MerchantSettingsScreen(),
-    ];
+  }
+
+  Widget _getSelectedPage() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildDashboard();
+      case 1:
+        return const MerchantSalesScreen();
+      case 2:
+        return const MerchantHistoryScreen();
+      case 3:
+        return const MerchantSettingsScreen();
+      default:
+        return _buildDashboard();
+    }
   }
 
   Future<void> _loadMerchantData() async {
@@ -199,10 +206,20 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
                           ? const SizedBox(
                               height: 200,
                               child: Center(child: CircularProgressIndicator()))
-                          : MerchantTransactionList(
-                              transactionsStream: _merchantService
-                                  .getMerchantTransactions(_merchant!.id),
-                            ),
+                          : _merchant == null
+                              ? const SizedBox(
+                                  height: 200,
+                                  child: Center(
+                                    child: Text(
+                                      'Unable to load merchant data',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ),
+                                )
+                              : MerchantTransactionList(
+                                  transactionsStream: _merchantService
+                                      .getMerchantTransactions(_merchant!.id),
+                                ),
                       const SizedBox(height: 30),
                     ]),
                   ),
@@ -253,7 +270,7 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
           ),
 
           // Render active screen wrapper in SafeArea context
-          _pages[_selectedIndex],
+          _getSelectedPage(),
         ],
       ),
 
