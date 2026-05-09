@@ -5,6 +5,8 @@ import 'package:paypalm/screens/splash_screen.dart';
 import 'package:paypalm/theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'firebase_options.dart';
 import 'package:paypalm/screens/auth_choice_screen.dart';
 import 'package:paypalm/services/auth_session_service.dart';
@@ -18,11 +20,15 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: kReleaseMode ? AndroidProvider.playIntegrity : AndroidProvider.debug,
+    appleProvider: AppleProvider.appAttest,
+  );
   // Set persistence to LOCAL for web only. Mobile platforms handle this automatically.
   if (kIsWeb) {
     await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
   }
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatefulWidget {

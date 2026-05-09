@@ -62,7 +62,6 @@ class AuthService {
   // Register
   Future<UserCredential?> register({
     required String name,
-    required String fathersName,
     required String gender,
     required String email,
     required String phone,
@@ -82,7 +81,6 @@ class AuthService {
       await _firestore.collection('users').doc(uid).set({
         'uid': uid,
         'name': name,
-        'fathersName': fathersName,
         'gender': gender,
         'email': email,
         'phone': phone,

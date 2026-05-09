@@ -17,7 +17,6 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
-  final _fathersNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _cnicController = TextEditingController();
@@ -41,7 +40,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _fathersNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _cnicController.dispose();
@@ -57,7 +55,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     FocusScope.of(context).unfocus();
 
     final name = _nameController.text.trim();
-    final fathersName = _fathersNameController.text.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
     final cnic = _cnicController.text.trim();
@@ -131,7 +128,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       await AuthService().register(
         name: name,
-        fathersName: fathersName,
         gender: _selectedGender!,
         email: email,
         phone: phone,
@@ -362,13 +358,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     label: 'Full Name',
                     hint: 'Enter your full name',
                     icon: Icons.person_outline_rounded,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildInputField(
-                    controller: _fathersNameController,
-                    label: 'Father\'s Name',
-                    hint: 'Enter your father\'s name',
-                    icon: Icons.people_outline_rounded,
                   ),
                   const SizedBox(height: 24),
 

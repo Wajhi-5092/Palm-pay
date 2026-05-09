@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:paypalm/screens/auth_choice_screen.dart';
 import 'package:paypalm/services/auth_service.dart';
 import 'package:paypalm/services/local_app_state_service.dart';
@@ -40,12 +41,12 @@ class _MerchantSettingsScreenState extends State<MerchantSettingsScreen> {
   }
 
   Future<void> _logout() async {
-    await AuthService().logout();
-    if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const AuthChoiceScreen()),
       (route) => false,
     );
+    // Background cleanup; also avoid clearing personal MPIN from merchant logout.
+    unawaited(AuthService().logout(clearMpin: false));
   }
 
   void _showComingSoon(String feature) {

@@ -130,7 +130,23 @@ class _MerchantRegistrationScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.06),
+                          padding: const EdgeInsets.all(12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
                   // Title
                   const Text(
                     'Register Your Store',

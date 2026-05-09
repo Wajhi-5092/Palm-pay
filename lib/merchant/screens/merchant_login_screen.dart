@@ -150,6 +150,21 @@ class _MerchantLoginScreenState extends State<MerchantLoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.white.withValues(alpha: 0.06),
+                            padding: const EdgeInsets.all(12),
+                          ),
+                        ),
+                      ),
                       SizedBox(height: isSmallScreen ? 20 : 40),
 
                       // Logo Icon

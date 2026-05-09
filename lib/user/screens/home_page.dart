@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:paypalm/user/widgets/home/home_header.dart';
 import 'package:paypalm/user/widgets/home/wallet_card.dart';
 import 'package:paypalm/user/widgets/home/bottom_nav.dart';
+import 'package:paypalm/user/widgets/home/more_features_grid.dart';
+import 'package:paypalm/user/screens/palm_scan_screen.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -53,17 +55,48 @@ class HomePage extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16.0, vertical: 8.0),
-                        child: Text(
-                          'More with PayPalm',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                    letterSpacing: 0.5,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const PalmScanScreen(isRegistration: false),
                                   ),
+                                );
+                              },
+                              child: Text(
+                                'More with PayPalm',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                      letterSpacing: 0.5,
+                                    ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                // Could navigate to a see-all features page
+                              },
+                              child: const Text(
+                                'See All',
+                                style: TextStyle(
+                                  color: Color.fromARGB(255, 0, 92, 178),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
+                    const MoreFeaturesGrid(),
                   ],
                 ),
               ),
@@ -72,8 +105,6 @@ class HomePage extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: const BottomNav(),
-      floatingActionButton: const CenterQRButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:paypalm/services/auth_service.dart';
 import 'package:paypalm/services/merchant_service.dart';
@@ -11,7 +12,7 @@ import 'merchant_history_screen.dart';
 import 'merchant_settings_screen.dart';
 import 'merchant_withdrawal_screen.dart';
 import 'package:paypalm/screens/auth_choice_screen.dart';
-import 'package:paypalm/widgets/custom_snackbar.dart';
+import 'package:paypalm/merchant/screens/merchant_billing_screen.dart';
 
 class MerchantHomeScreen extends StatefulWidget {
   const MerchantHomeScreen({super.key});
@@ -150,11 +151,19 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
                       // Action Row
                       Row(
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: MerchantActionCard(
-                              icon: Icons.qr_code_scanner_rounded,
+                              icon: Icons.pan_tool_rounded,
                               title: 'Receive',
                               color: accentTeal,
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const MerchantBillingScreen(),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -321,28 +330,22 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
         if (value == 'switch') {
           // Switch to personal account logic
         } else if (value == 'logout') {
-          await AuthService().logout();
+          // Make logout feel instant: navigate away first, then clean up in background.
           if (!mounted) return;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            Navigator.of(context).pushAndRemoveUntil(
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    const AuthChoiceScreen(),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-                transitionDuration: const Duration(milliseconds: 300),
-              ),
-              (route) => false,
-            );
-            CustomSnackbar.show(
-              context: context,
-              message: 'Merchant logged out',
-              type: SnackbarType.info,
-            );
-          });
+          Navigator.of(context).pushAndRemoveUntil(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const AuthChoiceScreen(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              transitionDuration: const Duration(milliseconds: 300),
+            ),
+            (route) => false,
+          );
+
+          unawaited(AuthService().logout(clearMpin: false));
         }
       },
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

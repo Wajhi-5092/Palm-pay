@@ -10,7 +10,7 @@ class BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final navHeight = (screenWidth * 0.18).clamp(64.0, 74.0);
-    final centerGap = (screenWidth * 0.16).clamp(44.0, 72.0);
+    (screenWidth * 0.16).clamp(44.0, 72.0);
     final iconSize = (screenWidth * 0.067).clamp(22.0, 28.0);
     final labelSize = (screenWidth * 0.027).clamp(9.0, 11.0);
 
@@ -58,7 +58,6 @@ class BottomNav extends StatelessWidget {
                   }
                 },
               ),
-              SizedBox(width: centerGap),
               _buildNavItem(
                 context,
                 Icons.person_rounded,
