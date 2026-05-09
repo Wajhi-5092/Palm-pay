@@ -1,0 +1,49 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function userId() {
+      return request.auth.uid;
+    }
+
+    // Simple client palm scan (demo): user may write own profile including palmScan.
+    match /users/{uid} {
+      allow read: if request.auth != null && userId() == uid;
+      allow create, update: if request.auth != null && userId() == uid;
+      allow delete: if request.auth != null && userId() == uid;
+    }
+
+    match /merchants/{mid} {
+      allow read, write: if request.auth != null && userId() == mid;
+    }
+
+    match /transactions/{tid} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    match /palmSaleRequests/{rid} {
+      allow read, write: if false;
+    }
+
+    match /palmAuditLogs/{lid} {
+      allow read, write: if false;
+    }
+
+    // Merchant demo palm logs (no payment logic).
+    match /palmMerchantDemo/{id} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null &&
+        resource.data.merchantId == userId();
+    }
+
+    // Palm index for merchant checkout: customers write their own doc; merchants read all.
+    match /palmLookup/{uid} {
+      allow read: if request.auth != null &&
+        exists(/databases/$(database)/documents/merchants/$(userId()));
+      allow create, update: if request.auth != null && userId() == uid;
+      allow delete: if request.auth != null && userId() == uid;
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "paypalm-palm-api",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:local": "set PALM_MASTER_KEY=local-dev-key-min-32-chars-long!! && node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "firebase-admin": "^12.6.0"
+  }
+}

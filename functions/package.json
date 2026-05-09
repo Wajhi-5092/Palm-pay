@@ -1,0 +1,13 @@
+{
+  "name": "paypalm-functions",
+  "description": "PayPalm palm biometric encryption, matching, and payments",
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^5.1.1"
+  },
+  "private": true
+}

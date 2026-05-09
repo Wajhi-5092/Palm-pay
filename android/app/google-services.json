@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "261667843517",
+    "firebase_url": "https://m-9f5e8-default-rtdb.firebaseio.com",
+    "project_id": "m-9f5e8",
+    "storage_bucket": "m-9f5e8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261667843517:android:1c19a78cecfb9e685b36d4",
+        "android_client_info": {
+          "package_name": "com.example.paypalm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_GES4fhFG86K8Px3tVNDswnaTpKH1bUM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
