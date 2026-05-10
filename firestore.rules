@@ -7,20 +7,64 @@ service cloud.firestore {
       return request.auth.uid;
     }
 
+    function isMerchant() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/merchants/$(userId()));
+    }
+
+    function userWalletOld() {
+      let v = resource.data.walletBalance;
+      return v is number ? v : 0;
+    }
+
     // Simple client palm scan (demo): user may write own profile including palmScan.
     match /users/{uid} {
-      allow read: if request.auth != null && userId() == uid;
-      allow create, update: if request.auth != null && userId() == uid;
-      allow delete: if request.auth != null && userId() == uid;
+      allow read: if request.auth != null && (userId() == uid || isMerchant());
+      allow create, delete: if request.auth != null && userId() == uid;
+      // Self-service profile updates.
+      allow update: if request.auth != null && userId() == uid;
+      // Palm sale: merchant decreases customer wallet only (atomic txn with merchant credit + transaction doc).
+      allow update: if isMerchant()
+        && userId() != uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletBalance'])
+        && request.resource.data.walletBalance is number
+        && request.resource.data.walletBalance >= 0
+        && request.resource.data.walletBalance < userWalletOld();
     }
 
     match /merchants/{mid} {
       allow read, write: if request.auth != null && userId() == mid;
     }
 
+    // Palm checkout session: merchant marks a customer as paid in this session (client palm payment).
+    match /merchants/{mid}/palmCheckoutSessions/{sid}/completedCustomerIds/{cid} {
+      allow read, create: if request.auth != null && userId() == mid;
+      allow update, delete: if false;
+    }
+
     match /transactions/{tid} {
-      allow read: if request.auth != null;
-      allow write: if false;
+      // Customer sees own payments; merchant sees own sales.
+      allow read: if request.auth != null && (
+        resource.data.userId == userId()
+        || resource.data.merchantId == userId()
+      );
+      allow create: if request.auth != null
+        && request.resource.data.merchantId == userId()
+        && request.resource.data.keys().hasAll([
+          'merchantId', 'userId', 'amount', 'type', 'status', 'paymentMethod'
+        ])
+        && (
+          request.resource.data.type == 0
+          || request.resource.data.type == 'sale'
+          || request.resource.data.type == 'palm_sale'
+        )
+        && (
+          request.resource.data.status == 1
+          || request.resource.data.status == 'completed'
+        )
+        && request.resource.data.userId is string
+        && request.resource.data.amount is number;
+      allow update, delete: if false;
     }
 
     match /palmSaleRequests/{rid} {

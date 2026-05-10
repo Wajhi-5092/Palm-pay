@@ -165,7 +165,7 @@ class CenterQRButton extends StatelessWidget {
       ),
       child: Center(
         child: Icon(
-          Icons.qr_code_scanner_rounded,
+          Icons.pan_tool_rounded,
           color: Colors.white,
           size: iconSize,
           shadows: [

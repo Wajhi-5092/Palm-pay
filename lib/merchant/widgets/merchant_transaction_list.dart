@@ -9,6 +9,33 @@ class MerchantTransactionList extends StatelessWidget {
     required this.transactionsStream,
   });
 
+  static String _headline(Transaction transaction, bool isWithdrawal) {
+    final d = transaction.description?.trim();
+    if (d != null && d.isNotEmpty) return d;
+    final name = transaction.customerName?.trim();
+    if (name != null && name.isNotEmpty) {
+      return isWithdrawal ? 'Withdrawal · $name' : 'Received · $name';
+    }
+    return isWithdrawal ? 'Withdrawal' : 'Sale';
+  }
+
+  static String _subtitle(Transaction transaction, bool isWithdrawal) {
+    final parts = <String>[];
+    final date =
+        '${transaction.createdAt.day}/${transaction.createdAt.month}/${transaction.createdAt.year}';
+    parts.add(date);
+    if (!isWithdrawal) {
+      final name = transaction.customerName?.trim();
+      if (name != null &&
+          name.isNotEmpty &&
+          (transaction.description == null ||
+              !transaction.description!.contains(name))) {
+        parts.add(name);
+      }
+    }
+    return parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     const Color textPrimary = Color(0xFF1E293B);
@@ -85,8 +112,7 @@ class MerchantTransactionList extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          transaction.description ??
-                              (isWithdrawal ? 'Withdrawal' : 'Sale'),
+                          _headline(transaction, isWithdrawal),
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             color: textPrimary,
@@ -94,7 +120,7 @@ class MerchantTransactionList extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${transaction.createdAt.day}/${transaction.createdAt.month}/${transaction.createdAt.year}',
+                          _subtitle(transaction, isWithdrawal),
                           style: TextStyle(
                             color: textPrimary.withValues(alpha: 0.5),
                             fontSize: 12,

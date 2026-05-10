@@ -3,11 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:paypalm/services/auth_service.dart';
-import 'package:paypalm/services/mpin_service.dart';
-import 'package:paypalm/services/auth_session_service.dart';
 import 'auth_choice_screen.dart';
-import '../user/modules/security/mpin_unlock_screen.dart';
-import '../user/screens/home_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,7 +18,6 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _fade;
   late Animation<double> _scale;
   Timer? _timer;
-  final MpinService _mpinService = MpinService();
 
   @override
   void initState() {
@@ -58,38 +53,19 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _goNext() async {
     if (!mounted) return;
 
-    // Drop stale sessions when the account was removed from Firebase (Console / Admin SDK).
-    User? user = FirebaseAuth.instance.currentUser;
-    user = await AuthService().syncSignedInUserWithServer(user);
-
-    // Check both Firebase Auth state AND cached session
-    // On web, Firebase auth might persist but session metadata might not
-    final hasCachedSession = await AuthSessionService().hasValidCachedSession();
-    final sessionOk = user != null && hasCachedSession;
+    // Drop stale auth when the account was removed from Firebase (Console / Admin SDK).
+    await AuthService().syncSignedInUserWithServer(
+      FirebaseAuth.instance.currentUser,
+    );
 
     if (!mounted) return;
 
-    // Determine next screen based on auth state
-    Widget nextScreen;
-    if (user != null && sessionOk) {
-      // User is logged in - check if MPIN is needed
-      final hasMpin = await _mpinService.hasMpin();
-      final mpinOnReopen = await _mpinService.isEnabledOnReopen();
-      nextScreen = (hasMpin && mpinOnReopen)
-          ? const MpinUnlockScreen()
-          : const HomePage();
-    } else {
-      // No user or no session - go to auth choice
-      nextScreen = const AuthChoiceScreen();
-    }
-
-    if (!mounted) return;
-
+    // Always land on role choice after splash (user picks Personal vs Merchant).
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 800),
-        pageBuilder: (_, __, ___) => nextScreen,
+        pageBuilder: (_, __, ___) => const AuthChoiceScreen(),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
       ),

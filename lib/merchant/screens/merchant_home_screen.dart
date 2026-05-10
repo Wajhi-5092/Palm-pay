@@ -26,6 +26,7 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
   Merchant? _merchant;
   Map<String, dynamic>? _stats;
   bool _isLoading = true;
+  StreamSubscription<Merchant?>? _merchantLiveSub;
 
   final _merchantService = MerchantService();
 
@@ -39,6 +40,23 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
   void initState() {
     super.initState();
     _loadMerchantData();
+    _merchantLiveSub =
+        _merchantService.watchCurrentMerchant().listen((merchant) async {
+      if (!mounted) return;
+      setState(() => _merchant = merchant);
+      if (merchant != null) {
+        try {
+          final s = await _merchantService.getMerchantStats(merchant.id);
+          if (mounted) setState(() => _stats = s);
+        } catch (_) {/* keep previous stats */}
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _merchantLiveSub?.cancel();
+    super.dispose();
   }
 
   Widget _getSelectedPage() {

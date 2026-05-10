@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:paypalm/user/screens/palm_scan_screen.dart';
 import 'package:paypalm/user/screens/transaction_history_screen.dart';
+import 'package:paypalm/widgets/custom_snackbar.dart';
 import 'package:paypalm/user/screens/account_screen.dart';
 
 class MoreFeaturesGrid extends StatelessWidget {
@@ -13,13 +14,21 @@ class MoreFeaturesGrid extends StatelessWidget {
         title: 'Enroll Palm',
         icon: Icons.fingerprint_rounded,
         color: const Color(0xFF6AE1BD),
-        onTap: () {
-          Navigator.push(
+        onTap: () async {
+          final ok = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
               builder: (context) => const PalmScanScreen(isRegistration: true),
             ),
           );
+          if (!context.mounted) return;
+          if (ok == true) {
+            CustomSnackbar.show(
+              context: context,
+              message: 'Palm enrolled successfully.',
+              type: SnackbarType.success,
+            );
+          }
         },
       ),
       _FeatureItem(

@@ -5,6 +5,7 @@ import 'package:paypalm/user/widgets/home/bottom_nav.dart';
 import 'package:paypalm/user/widgets/home/more_features_grid.dart';
 import 'package:paypalm/user/widgets/home/palm_enrollment_status_banner.dart';
 import 'package:paypalm/user/screens/palm_scan_screen.dart';
+import 'package:paypalm/widgets/custom_snackbar.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -66,14 +67,22 @@ class HomePage extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             GestureDetector(
-                              onTap: () {
-                                Navigator.push(
+                              onTap: () async {
+                                final ok = await Navigator.push<bool>(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         const PalmScanScreen(isRegistration: false),
                                   ),
                                 );
+                                if (!context.mounted) return;
+                                if (ok == true) {
+                                  CustomSnackbar.show(
+                                    context: context,
+                                    message: 'Palm verified successfully.',
+                                    type: SnackbarType.success,
+                                  );
+                                }
                               },
                               child: Text(
                                 'More with PayPalm',

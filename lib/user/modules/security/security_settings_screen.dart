@@ -179,14 +179,6 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                     if (!dialogContext.mounted) return;
                     Navigator.pop(dialogContext);
                     await _loadSecurityState();
-                    if (!mounted) return;
-                    CustomSnackbar.show(
-                      context: context,
-                      message: _hasMpin
-                          ? 'MPIN changed successfully'
-                          : 'MPIN set successfully',
-                      type: SnackbarType.success,
-                    );
                   },
                   child: const Text('Save'),
                 ),
@@ -314,8 +306,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
               leading: const Icon(Icons.pin_outlined),
               title: Text(_hasMpin ? 'Change MPIN' : 'Set MPIN'),
               subtitle: Text(_hasMpin
-                  ? 'Update your $_mpinLength-digit MPIN'
-                  : 'Create a 4 or 6-digit MPIN for quick login'),
+                  ? 'Update your $_mpinLength-digit MPIN (hashed and stored securely on this device)'
+                  : 'Save a 4 or 6-digit MPIN securely. After you set it, sign-in with password will ask for this MPIN next.'),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: _showSetOrChangeMpinDialog,
             ),

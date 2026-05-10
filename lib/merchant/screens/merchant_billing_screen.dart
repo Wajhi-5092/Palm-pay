@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:paypalm/user/screens/palm_scan_screen.dart';
+import 'package:uuid/uuid.dart';
 
 class MerchantBillingScreen extends StatefulWidget {
   const MerchantBillingScreen({super.key});
@@ -28,13 +29,14 @@ class _MerchantBillingScreenState extends State<MerchantBillingScreen> {
       return;
     }
 
-    // Pass the amount to the PalmScanScreen
+    final checkoutSessionId = const Uuid().v4();
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => PalmScanScreen(
           isRegistration: false,
-          billAmount: amount, // Pass the billing amount here
+          billAmount: amount,
+          checkoutSessionId: checkoutSessionId,
         ),
       ),
     );
@@ -91,7 +93,7 @@ class _MerchantBillingScreenState extends State<MerchantBillingScreen> {
               height: 56,
               child: ElevatedButton.icon(
                 onPressed: _proceedToScan,
-                icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white),
+                icon: const Icon(Icons.pan_tool_rounded, color: Colors.white),
                 label: const Text(
                   'Scan to Charge',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),

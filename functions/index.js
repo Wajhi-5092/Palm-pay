@@ -411,6 +411,206 @@ exports.verifyPalm = onCall(palmCallable, async (request) => {
   return { success: true };
 });
 
+/** Palm pay using client [palmLookup] embedding: re-verifies probe server-side, one atomic transfer. */
+const paymentOnlyCallable = { region: "us-central1" };
+
+exports.finalizePalmPayment = onCall(paymentOnlyCallable, async (request) => {
+  const merchantUid = assertAuthed(request);
+  const mSnap = await assertMerchant(merchantUid);
+
+  const data = request.data || {};
+  const customerUid =
+    typeof data.customerUid === "string" ? data.customerUid.trim() : "";
+  const amount = Number(data.amount);
+  const probe = data.embedding;
+  const threshold =
+    typeof data.threshold === "number" ? data.threshold : 0.85;
+  const handId =
+    typeof data.handId === "string" ? data.handId.trim() : null;
+  const clientRequestId =
+    typeof data.clientRequestId === "string"
+      ? data.clientRequestId.trim()
+      : null;
+  const checkoutSessionId =
+    typeof data.checkoutSessionId === "string"
+      ? data.checkoutSessionId.trim()
+      : "";
+
+  if (!customerUid) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Customer reference missing."
+    );
+  }
+  if (merchantUid === customerUid) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Cannot charge your own account."
+    );
+  }
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new HttpsError("invalid-argument", "Invalid payment amount.");
+  }
+  if (!Array.isArray(probe) || probe.length < 8) {
+    throw new HttpsError("invalid-argument", "Invalid palm embedding.");
+  }
+
+  const db = admin.firestore();
+
+  if (clientRequestId) {
+    const idem = await db
+      .collection("palmPaymentIntents")
+      .doc(clientRequestId)
+      .get();
+    if (idem.exists && idem.data().status === "completed") {
+      return idem.data().resultPayload;
+    }
+  }
+
+  const lookupSnap = await db.collection("palmLookup").doc(customerUid).get();
+  if (!lookupSnap.exists) {
+    throw new HttpsError(
+      "not-found",
+      "Customer palm is not enrolled."
+    );
+  }
+  const lookup = lookupSnap.data();
+  if (handId && lookup.handId && lookup.handId !== handId) {
+    throw new HttpsError(
+      "permission-denied",
+      "Hand ID does not match this customer."
+    );
+  }
+  const refEmb = lookup.embedding;
+  if (!Array.isArray(refEmb) || refEmb.length !== probe.length) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Palm template length mismatch."
+    );
+  }
+  const refArr = refEmb.map((x) => Number(x));
+  const probeArr = probe.map((x) => Number(x));
+  const sim = cosineSimilarity(probeArr, refArr);
+  if (sim < threshold) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Palm verification failed. Ask the customer to scan again."
+    );
+  }
+
+  const userSnap = await db.collection("users").doc(customerUid).get();
+  if (!userSnap.exists) {
+    throw new HttpsError("not-found", "Customer account not found.");
+  }
+  const userRow = userSnap.data();
+  const displayName =
+    userRow.name || userRow.fullName || lookup.displayName || "Customer";
+  const merchantData = mSnap.data();
+  const storeName = merchantData.storeName || "Merchant";
+
+  let result;
+  const duplicateCheckoutMsg =
+    "Your hand scan has already been completed for this ID; you cannot scan again on this ID.";
+
+  try {
+    result = await db.runTransaction(async (tx) => {
+      const userRef = db.collection("users").doc(customerUid);
+      const merchantRef = db.collection("merchants").doc(merchantUid);
+      const txRef = db.collection("transactions").doc();
+
+      let completionRef = null;
+      if (checkoutSessionId.length > 0) {
+        completionRef = db
+          .collection("merchants")
+          .doc(merchantUid)
+          .collection("palmCheckoutSessions")
+          .doc(checkoutSessionId)
+          .collection("completedCustomerIds")
+          .doc(customerUid);
+        const compSnap = await tx.get(completionRef);
+        if (compSnap.exists) {
+          throw new Error(duplicateCheckoutMsg);
+        }
+      }
+
+      const userDoc = await tx.get(userRef);
+      const merchantDoc = await tx.get(merchantRef);
+      if (!userDoc.exists) throw new Error("User not found");
+      if (!merchantDoc.exists) throw new Error("Merchant not found");
+
+      let userBalance = Number(userDoc.data().walletBalance || 0);
+      let merchantBalance = Number(merchantDoc.data().walletBalance || 0);
+      if (userBalance < amount) {
+        throw new Error("Customer has insufficient wallet balance.");
+      }
+
+      userBalance -= amount;
+      merchantBalance += amount;
+
+      tx.update(userRef, { walletBalance: userBalance });
+      tx.update(merchantRef, { walletBalance: merchantBalance });
+
+      tx.set(txRef, {
+        id: txRef.id,
+        merchantId: merchantUid,
+        merchantName: storeName,
+        userId: customerUid,
+        userName: displayName,
+        amount,
+        fee: 0,
+        netAmount: amount,
+        type: "palm_sale",
+        status: "completed",
+        paymentMethod: "palm_lookup_verify",
+        final: true,
+        irreversible: true,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        description: "Palm payment (finalizePalmPayment)",
+        ...(checkoutSessionId.length > 0 ? { checkoutSessionId } : {}),
+      });
+
+      if (completionRef) {
+        tx.set(completionRef, {
+          customerUid,
+          checkoutSessionId,
+          transactionId: txRef.id,
+          amount,
+          completedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+
+      return {
+        success: true,
+        userId: customerUid,
+        displayName,
+        confidence: Math.round(sim * 1000) / 10,
+        walletBalance: userBalance,
+        merchantWalletBalance: merchantBalance,
+        transactionId: txRef.id,
+        amount,
+        message: `Charged PKR ${amount.toFixed(2)} to ${displayName}.`,
+      };
+    });
+  } catch (e) {
+    const msg = e && e.message ? String(e.message) : "Transaction failed.";
+    throw new HttpsError("failed-precondition", msg);
+  }
+
+  if (clientRequestId) {
+    await db.collection("palmPaymentIntents").doc(clientRequestId).set({
+      status: "completed",
+      merchantId: merchantUid,
+      customerUid,
+      amount,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      resultPayload: result,
+    });
+  }
+
+  return result;
+});
+
 // --- Account lifecycle: keep Firebase Auth and Firestore profiles in sync ---
 const functionsV1 = require("firebase-functions/v1");
 const { onDocumentDeleted } = require("firebase-functions/v2/firestore");

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:paypalm/palm/services/palm_hand_id_service.dart';
 
 /// Shows when this account already has a palm scan saved in Firestore.
 class PalmEnrollmentStatusBanner extends StatelessWidget {
@@ -39,6 +40,10 @@ class PalmEnrollmentStatusBanner extends StatelessWidget {
         }
 
         final savedAtStr = hasScan ? _formatSavedAt(scan['savedAt']) : '';
+        final handIdRaw = (data['handId'] as String?)?.trim() ??
+            ((scan is Map<String, dynamic>)
+                ? (scan['handId'] as String?)?.trim()
+                : null);
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
@@ -93,6 +98,18 @@ class PalmEnrollmentStatusBanner extends StatelessWidget {
                               ),
                         ),
                         const SizedBox(height: 4),
+                        if (handIdRaw != null && handIdRaw.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Text(
+                              'Hand ID • ${PalmHandIdService.maskHandId(handIdRaw)}',
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.2,
+                                  ),
+                            ),
+                          ),
                         Text(
                           savedAtStr.isNotEmpty
                               ? 'Saved on $savedAtStr. You can scan again from Enroll Palm to replace it.'

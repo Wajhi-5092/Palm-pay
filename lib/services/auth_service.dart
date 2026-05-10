@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:paypalm/services/connectivity_service.dart';
 import 'package:paypalm/services/local_app_state_service.dart';
@@ -15,27 +14,15 @@ class AuthService {
   /// Lowercase trimmed email for consistent storage and lookups.
   static String normalizeEmail(String email) => email.trim().toLowerCase();
 
-  /// Ensures the email is not already registered in Firebase Auth (so it can be used for a new account).
-  /// Call before [register]. Returns the normalized email.
+  /// Optional early check — prefer relying on [createUserWithEmailAndPassword]
+  /// (`email-already-in-use`) so results match Auth after deletions/propagation.
+  ///
+  /// [fetchSignInMethodsForEmail] can lag behind Auth deletions; do not use this
+  /// as the only gate for registration.
   Future<String> validateEmailForNewAccount(String email) async {
     final normalized = normalizeEmail(email);
     if (normalized.isEmpty) {
       throw Exception('Please enter your email address.');
-    }
-    try {
-      // Firebase Auth canonical check for whether this email already has an account.
-      // ignore: deprecated_member_use
-      final methods = await _auth.fetchSignInMethodsForEmail(normalized);
-      if (methods.isNotEmpty) {
-        throw Exception(
-          'This email is already registered. Sign in or use a different email.',
-        );
-      }
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'invalid-email') {
-        throw Exception('Please enter a valid email address.');
-      }
-      throw Exception(e.message ?? 'Could not verify email availability.');
     }
     return normalized;
   }
@@ -67,18 +54,47 @@ class AuthService {
     }
   }
 
-  /// Consumer accounts expect `users/{uid}` in Firestore. If only Auth remains (profile bulk-deleted),
-  /// sign out so the user must register again.
+  /// Ensures `users/{uid}` exists after sign-in. If you deleted only the Firestore
+  /// document (not the Firebase Auth user), we recreate a minimal profile so the
+  /// user can sign in again instead of being stuck.
   Future<void> requirePersonalUserProfileAfterLogin() async {
     final user = _auth.currentUser;
     if (user == null) return;
-    final snap = await _firestore.collection('users').doc(user.uid).get();
+    final ref = _firestore.collection('users').doc(user.uid);
+    final snap = await ref.get();
     if (snap.exists) return;
-    await logout(clearMpin: false);
-    throw Exception(
-      'No profile found for this account. It may have been removed — please register again.',
-    );
+
+    final email = normalizeEmail(user.email ?? '');
+    final displayName = user.displayName?.trim();
+    await ref.set({
+      'uid': user.uid,
+      'name': (displayName != null && displayName.isNotEmpty)
+          ? displayName
+          : 'PayPalm User',
+      'email': email,
+      'gender': '',
+      'phone': '',
+      'cnic': '',
+      'city': '',
+      'address': '',
+      'role': 'personal',
+      'walletBalance': LocalAppStateService.defaultBalance,
+      'createdAt': FieldValue.serverTimestamp(),
+      'profileRepaired': true,
+    }, SetOptions(merge: true));
   }
+
+  /// Shown when sign-up hits [email-already-in-use]. Often the Firestore profile was
+  /// deleted but the **Firebase Auth** user still exists (registration queries cannot
+  /// read Firestore while signed out). User should sign in (profile is auto-repaired)
+  /// or delete the Auth user in Console.
+  static const String emailAlreadyInUseGuidance =
+      'This email is still registered for login in Firebase. '
+      'If you only deleted the database profile, use Sign in with this email and password — '
+      'your profile will be restored automatically. '
+      'To create a completely new account with this email, delete the user in '
+      'Firebase Console → Authentication → Users, then try again. '
+      'Otherwise sign in, or choose a different email.';
 
   Future<void> _setLoginState(bool isLoggedIn) async {
     final prefs = await SharedPreferences.getInstance();
@@ -142,9 +158,12 @@ class AuthService {
     required String address,
     required String password,
   }) async {
-    try {
-      final normalizedEmail = await validateEmailForNewAccount(email);
+    final normalizedEmail = normalizeEmail(email);
+    if (normalizedEmail.isEmpty) {
+      throw Exception('Please enter your email address.');
+    }
 
+    try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: normalizedEmail,
         password: password,
@@ -162,6 +181,7 @@ class AuthService {
         'city': city,
         'address': address,
         'role': 'personal',
+        'walletBalance': LocalAppStateService.defaultBalance,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -176,18 +196,21 @@ class AuthService {
       return userCredential;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
-        throw Exception(
-          'This email is already registered. Sign in or use a different email.',
-        );
+        throw Exception(emailAlreadyInUseGuidance);
       }
       throw Exception(e.message ?? 'An error occurred during registration.');
     }
   }
 
-  /// Deletes the signed-in user from Auth and removes their Firestore profile and palm lookup row.
-  /// Requires the account password for reauthentication.
+  /// Deletes the Firebase **Auth** user first (so the email is released for sign-up),
+  /// then [logout]. Firestore `users/{uid}` and `palmLookup/{uid}` are removed by
+  /// Cloud Function `deleteUserDataWhenAuthRemoved` — deploy `functions` for that path.
+  ///
+  /// We avoid deleting Firestore before Auth here: doing so triggers
+  /// `deleteAuthWhenUserProfileDeleted` and can invalidate the client session before
+  /// `user.delete()` runs, leaving Auth cleanup inconsistent.
   Future<void> deleteAccount({required String password}) async {
-    final user = _auth.currentUser;
+    User? user = _auth.currentUser;
     if (user == null) throw Exception('Not signed in.');
     final email = user.email;
     if (email == null || email.isEmpty) {
@@ -210,23 +233,14 @@ class AuthService {
       throw Exception(e.message ?? 'Could not verify password.');
     }
 
-    final uid = user.uid;
-    try {
-      await _firestore.collection('palmLookup').doc(uid).delete();
-    } catch (e, st) {
-      debugPrint('palmLookup delete: $e\n$st');
-    }
-    try {
-      await _firestore.collection('users').doc(uid).delete();
-    } catch (e, st) {
-      debugPrint('users delete: $e\n$st');
-    }
+    user = _auth.currentUser;
+    if (user == null) throw Exception('Session expired. Sign in again and retry.');
 
     try {
       await user.delete();
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
-        // Already removed (e.g. Cloud Function deleted Auth after Firestore profile removal).
+        // Auth user already removed (e.g. admin or another client).
       } else if (e.code == 'requires-recent-login') {
         throw Exception('Please sign out and sign in again, then retry.');
       } else {

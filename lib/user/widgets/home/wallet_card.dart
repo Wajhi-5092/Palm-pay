@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:paypalm/services/local_app_state_service.dart';
+import 'package:paypalm/services/user_wallet_firestore_service.dart';
 import 'package:paypalm/user/modules/add_cash/add_cash_demo_money_screen.dart';
 
 class WalletCard extends StatefulWidget {
@@ -11,21 +12,6 @@ class WalletCard extends StatefulWidget {
 
 class _WalletCardState extends State<WalletCard> {
   bool _isBalanceVisible = true;
-  double _balance = LocalAppStateService.defaultBalance;
-  final LocalAppStateService _localState = LocalAppStateService();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadBalance();
-  }
-
-  Future<void> _loadBalance() async {
-    await _localState.ensureDefaults();
-    final balance = await _localState.getBalance();
-    if (!mounted) return;
-    setState(() => _balance = balance);
-  }
 
   String _formatBalance(double value) {
     final parts = value.toStringAsFixed(2).split('.');
@@ -45,13 +31,19 @@ class _WalletCardState extends State<WalletCard> {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const AddCashDemoMoneyScreen()),
     );
-    await _loadBalance();
   }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
+    return StreamBuilder<double>(
+      stream: UserWalletFirestoreService.watchWalletBalance(),
+      builder: (context, snapshot) {
+        final balance = snapshot.hasData
+            ? snapshot.data!
+            : LocalAppStateService.defaultBalance;
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
         final width = constraints.maxWidth;
         final isSmall = width < 350;
 
@@ -166,7 +158,7 @@ class _WalletCardState extends State<WalletCard> {
                             Expanded(
                               child: Text(
                                 _isBalanceVisible
-                                    ? _formatBalance(_balance)
+                                    ? _formatBalance(balance)
                                     : 'Rs. •••••••',
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -222,6 +214,8 @@ class _WalletCardState extends State<WalletCard> {
               ),
             ),
           ),
+        );
+          },
         );
       },
     );

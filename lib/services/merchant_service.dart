@@ -33,10 +33,13 @@ class MerchantService {
     required String password,
     String? logoUrl,
   }) async {
-    try {
-      final normalizedEmail = await AuthService().validateEmailForNewAccount(email);
+    final normalizedEmail = AuthService.normalizeEmail(email);
+    if (normalizedEmail.isEmpty) {
+      throw Exception('Please enter a valid email address.');
+    }
 
-      // Create auth user
+    try {
+      // Create auth user — duplicate email surfaces as email-already-in-use
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: normalizedEmail,
@@ -83,9 +86,7 @@ class MerchantService {
       return merchant;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
-        throw Exception(
-          'This email is already registered. Sign in or use a different email.',
-        );
+        throw Exception(AuthService.emailAlreadyInUseGuidance);
       }
       rethrow;
     } catch (e) {
@@ -170,27 +171,48 @@ class MerchantService {
     await _firestore.collection('merchants').doc(merchantId).update(updates);
   }
 
-  // Get merchant transactions
+  /// Live wallet + profile for dashboard (updates after palm pay, etc.).
+  Stream<Merchant?> watchCurrentMerchant() {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      return Stream.value(null);
+    }
+    return _firestore
+        .collection('merchants')
+        .doc(uid)
+        .snapshots()
+        .map((snap) => snap.exists ? Merchant.fromFirestore(snap) : null);
+  }
+
+  // Get merchant transactions (sort in app — avoids composite index:
+  // where merchantId + orderBy createdAt requires an index in Console).
   Stream<List<Transaction>> getMerchantTransactions(String merchantId) {
     return _firestore
         .collection('transactions')
         .where('merchantId', isEqualTo: merchantId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Transaction.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+          final list = snapshot.docs
+              .map((doc) => Transaction.fromFirestore(doc))
+              .toList();
+          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return list;
+        });
   }
 
-  // Get merchant withdrawals
+  // Get merchant withdrawals (same: single-field filter + client sort).
   Stream<List<Withdrawal>> getMerchantWithdrawals(String merchantId) {
     return _firestore
         .collection('withdrawals')
         .where('merchantId', isEqualTo: merchantId)
-        .orderBy('requestedAt', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => Withdrawal.fromFirestore(doc)).toList());
+        .map((snapshot) {
+          final list = snapshot.docs
+              .map((doc) => Withdrawal.fromFirestore(doc))
+              .toList();
+          list.sort((a, b) => b.requestedAt.compareTo(a.requestedAt));
+          return list;
+        });
   }
 
   // Request withdrawal

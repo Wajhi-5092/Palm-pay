@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:paypalm/services/local_app_state_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:paypalm/services/user_wallet_firestore_service.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
 
 class AddCashDemoMoneyScreen extends StatefulWidget {
@@ -12,7 +13,6 @@ class AddCashDemoMoneyScreen extends StatefulWidget {
 
 class _AddCashDemoMoneyScreenState extends State<AddCashDemoMoneyScreen> {
   static const double _maxInputAmount = 100000;
-  final LocalAppStateService _localState = LocalAppStateService();
   final TextEditingController _amountController = TextEditingController();
   double _balance = 0;
 
@@ -29,10 +29,12 @@ class _AddCashDemoMoneyScreenState extends State<AddCashDemoMoneyScreen> {
   }
 
   Future<void> _loadBalance() async {
-    await _localState.ensureDefaults();
-    final balance = await _localState.getBalance();
-    if (!mounted) return;
-    setState(() => _balance = balance);
+    if (FirebaseAuth.instance.currentUser == null) {
+      if (mounted) setState(() => _balance = 0);
+      return;
+    }
+    final v = await UserWalletFirestoreService.getWalletBalanceOnce();
+    if (mounted) setState(() => _balance = v);
   }
 
   String _formatBalance(double value) {
@@ -69,7 +71,7 @@ class _AddCashDemoMoneyScreenState extends State<AddCashDemoMoneyScreen> {
       return;
     }
 
-    final updated = await _localState.addDemoMoney(amount);
+    final updated = await UserWalletFirestoreService.incrementWallet(amount);
     if (!mounted) return;
     _amountController.clear();
     setState(() => _balance = updated);
@@ -81,9 +83,9 @@ class _AddCashDemoMoneyScreenState extends State<AddCashDemoMoneyScreen> {
   }
 
   Future<void> _clearAllDemoMoney() async {
-    final updated = await _localState.clearDemoMoney();
+    await UserWalletFirestoreService.setWalletBalance(0);
     if (!mounted) return;
-    setState(() => _balance = updated);
+    setState(() => _balance = 0);
     CustomSnackbar.show(
       context: context,
       message: 'All demo money cleared',
@@ -92,9 +94,9 @@ class _AddCashDemoMoneyScreenState extends State<AddCashDemoMoneyScreen> {
   }
 
   Future<void> _resetDemoMoney() async {
-    final updated = await _localState.resetDemoMoney();
+    await UserWalletFirestoreService.setWalletBalance(50000);
     if (!mounted) return;
-    setState(() => _balance = updated);
+    setState(() => _balance = 50000);
     CustomSnackbar.show(
       context: context,
       message: 'Demo wallet reset to Rs. 50000',

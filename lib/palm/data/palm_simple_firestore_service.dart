@@ -14,6 +14,10 @@ class PalmSimpleFirestoreService {
   /// Minimum cosine similarity to treat a palm as matching a registered customer.
   static const double merchantMatchThreshold = 0.85;
 
+  /// Shown when this customer ID already completed a palm payment in this checkout session.
+  static const String palmCheckoutDuplicateCustomerMessage =
+      'Your hand scan has already been completed for this ID; you cannot scan again on this ID.';
+
   static List<double> _safeEmbeddingList(Float32List f) {
     return List<double>.generate(f.length, (i) {
       final v = f[i];
@@ -115,6 +119,26 @@ class PalmSimpleFirestoreService {
     if (p.length != ref.length) return false;
     final sim = palmCosineSimilarity(p, ref);
     return sim >= threshold;
+  }
+
+  /// True if [customerUid] already completed a successful palm payment for this merchant
+  /// in checkout session [checkoutSessionId] (after a prior successful charge).
+  static Future<bool> hasCustomerCompletedCheckoutSessionScan({
+    required String merchantUid,
+    required String checkoutSessionId,
+    required String customerUid,
+  }) async {
+    final sid = checkoutSessionId.trim();
+    if (sid.isEmpty) return false;
+    final snap = await FirebaseFirestore.instance
+        .collection('merchants')
+        .doc(merchantUid)
+        .collection('palmCheckoutSessions')
+        .doc(sid)
+        .collection('completedCustomerIds')
+        .doc(customerUid)
+        .get();
+    return snap.exists;
   }
 
   /// Finds the enrolled customer whose stored palm best matches [probe].

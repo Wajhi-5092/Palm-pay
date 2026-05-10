@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'package:paypalm/services/auth_service.dart';
-import 'package:paypalm/services/mpin_service.dart';
 import 'package:paypalm/services/connectivity_service.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
 
@@ -29,7 +28,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
-  final MpinService _mpinService = MpinService();
   final ConnectivityService _connectivity = ConnectivityService();
 
   @override
@@ -145,9 +143,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         type: SnackbarType.success,
       );
 
-      await _maybeOfferMpinSetup();
-      if (!mounted) return;
-
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
@@ -161,122 +156,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  Future<void> _maybeOfferMpinSetup() async {
-    final hasMpin = await _mpinService.hasMpin();
-    if (hasMpin || !mounted) return;
-
-    final mpinController = TextEditingController();
-    final confirmController = TextEditingController();
-    bool enableOnReopen = true;
-    int mpinLength = 4;
-
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Set MPIN for Quick Login'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                        'Create your MPIN to login instantly when reopening.'),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<int>(
-                            contentPadding: EdgeInsets.zero,
-                            value: 4,
-                            groupValue: mpinLength,
-                            onChanged: (v) {
-                              setDialogState(() => mpinLength = v ?? 4);
-                              mpinController.clear();
-                              confirmController.clear();
-                            },
-                            title: const Text('4-digit'),
-                          ),
-                        ),
-                        Expanded(
-                          child: RadioListTile<int>(
-                            contentPadding: EdgeInsets.zero,
-                            value: 6,
-                            groupValue: mpinLength,
-                            onChanged: (v) {
-                              setDialogState(() => mpinLength = v ?? 6);
-                              mpinController.clear();
-                              confirmController.clear();
-                            },
-                            title: const Text('6-digit'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    TextField(
-                      controller: mpinController,
-                      keyboardType: TextInputType.number,
-                      maxLength: mpinLength,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'MPIN',
-                        counterText: '',
-                      ),
-                    ),
-                    TextField(
-                      controller: confirmController,
-                      keyboardType: TextInputType.number,
-                      maxLength: mpinLength,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Confirm MPIN',
-                        counterText: '',
-                      ),
-                    ),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: enableOnReopen,
-                      onChanged: (value) {
-                        setDialogState(() => enableOnReopen = value);
-                      },
-                      title: const Text('Use MPIN on every app reopen'),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Not now'),
-                ),
-                FilledButton(
-                  onPressed: () async {
-                    final mpin = mpinController.text.trim();
-                    final confirm = confirmController.text.trim();
-                    if (mpin.length != mpinLength ||
-                        int.tryParse(mpin) == null) {
-                      return;
-                    }
-                    if (mpin != confirm) {
-                      return;
-                    }
-                    await _mpinService.setMpin(mpin);
-                    await _mpinService.setEnabledOnReopen(enableOnReopen);
-                    if (!dialogContext.mounted) return;
-                    Navigator.pop(dialogContext);
-                  },
-                  child: const Text('Save MPIN'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 
   @override

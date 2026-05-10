@@ -13,7 +13,6 @@ import 'package:paypalm/palm/services/palm_liveness_tracker.dart';
 import 'package:paypalm/palm/services/palm_stub_embedding.dart';
 import 'package:paypalm/palm/ui/palm_data_recovery_dialog.dart';
 import 'package:paypalm/palm/ui/palm_merchant_customer_confirm_screen.dart';
-import 'package:paypalm/palm/ui/palm_registration_success_screen.dart';
 import 'package:paypalm/palm/ui/widgets/palm_scan_overlay.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
 
@@ -28,10 +27,13 @@ class PalmScannerScreen extends StatefulWidget {
     super.key,
     required this.purpose,
     this.checkoutAmount,
+    this.checkoutSessionId,
   });
 
   final PalmScannerPurpose purpose;
   final double? checkoutAmount;
+  /// Merchant billing session (one per "Scan to Charge"); used to prevent duplicate customer scans.
+  final String? checkoutSessionId;
 
   @override
   State<PalmScannerScreen> createState() => _PalmScannerScreenState();
@@ -329,13 +331,7 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
             biometricHash: PalmEmbeddingService.biometricHash(embedding),
           );
           if (!mounted) return;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute<void>(
-              builder: (_) => PalmRegistrationSuccessScreen(
-                completedAt: DateTime.now(),
-              ),
-            ),
-          );
+          Navigator.of(context).pop(true);
         case PalmScannerPurpose.userVerification:
           final matched = await PalmSimpleFirestoreService.verifyLocally(
             probe: embedding,
@@ -343,12 +339,7 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
           );
           if (!mounted) return;
           if (matched) {
-            CustomSnackbar.show(
-              context: context,
-              message: 'Palm verified successfully.',
-              type: SnackbarType.success,
-            );
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(true);
           } else {
             CustomSnackbar.show(
               context: context,
@@ -385,12 +376,39 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
             }
             return;
           }
+          final sessionId = widget.checkoutSessionId?.trim();
+          if (sessionId != null &&
+              sessionId.isNotEmpty &&
+              merchantUid != null) {
+            final already = await PalmSimpleFirestoreService
+                .hasCustomerCompletedCheckoutSessionScan(
+              merchantUid: merchantUid,
+              checkoutSessionId: sessionId,
+              customerUid: match.uid,
+            );
+            if (!mounted) return;
+            if (already) {
+              CustomSnackbar.show(
+                context: context,
+                message: PalmSimpleFirestoreService
+                    .palmCheckoutDuplicateCustomerMessage,
+                type: SnackbarType.error,
+              );
+              if (_simpleMode) {
+                if (mounted) setState(() => _processing = false);
+              } else {
+                await _restartPreview();
+              }
+              return;
+            }
+          }
           Navigator.of(context).pushReplacement(
             MaterialPageRoute<void>(
               builder: (_) => PalmMerchantCustomerConfirmScreen(
                 match: match,
                 amount: amount,
                 embedding: embedding,
+                checkoutSessionId: widget.checkoutSessionId,
               ),
             ),
           );

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:paypalm/services/local_app_state_service.dart';
+import 'package:paypalm/services/user_wallet_firestore_service.dart';
 import 'package:paypalm/user/modules/add_cash/add_cash_demo_money_screen.dart';
 import 'package:paypalm/user/widgets/transaction/transaction_list.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
@@ -13,22 +14,6 @@ class MyAccountDetailsScreen extends StatefulWidget {
 }
 
 class _MyAccountDetailsScreenState extends State<MyAccountDetailsScreen> {
-  final LocalAppStateService _localState = LocalAppStateService();
-  double _balance = LocalAppStateService.defaultBalance;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadBalance();
-  }
-
-  Future<void> _loadBalance() async {
-    await _localState.ensureDefaults();
-    final balance = await _localState.getBalance();
-    if (!mounted) return;
-    setState(() => _balance = balance);
-  }
-
   String _formatBalance(double value) {
     final parts = value.toStringAsFixed(2).split('.');
     final whole = parts[0];
@@ -47,7 +32,6 @@ class _MyAccountDetailsScreenState extends State<MyAccountDetailsScreen> {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const AddCashDemoMoneyScreen()),
     );
-    await _loadBalance();
   }
 
   void _showLinkComingSoon() {
@@ -141,75 +125,80 @@ class _MyAccountDetailsScreenState extends State<MyAccountDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth;
-                final isSmall = width < 350;
+            StreamBuilder<double>(
+              stream: UserWalletFirestoreService.watchWalletBalance(),
+              builder: (context, snapshot) {
+                final balance = snapshot.hasData
+                    ? snapshot.data!
+                    : LocalAppStateService.defaultBalance;
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final width = constraints.maxWidth;
+                    final isSmall = width < 350;
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.account_balance_wallet_outlined,
-                      color: const Color.fromARGB(255, 2, 41, 125),
-                      size: isSmall ? 26 : 32,
-                    ),
-                    SizedBox(height: width * 0.03),
-                    Text(
-                      'PayPalm Mobile Account',
-                      style: TextStyle(
-                        color: const Color.fromARGB(255, 2, 41, 125),
-                        fontSize: isSmall ? 11 : 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    SizedBox(height: width * 0.03),
-                    Row(
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 🔥 Prevent overflow
-                        Expanded(
-                          child: Text(
-                            _formatBalance(_balance),
-                            overflow: TextOverflow.clip,
-                            style: TextStyle(
-                              fontSize: isSmall ? 22 : 28,
-                              fontWeight: FontWeight.w900,
-                            ),
+                        Icon(
+                          Icons.account_balance_wallet_outlined,
+                          color: const Color.fromARGB(255, 2, 41, 125),
+                          size: isSmall ? 26 : 32,
+                        ),
+                        SizedBox(height: width * 0.03),
+                        Text(
+                          'PayPalm Mobile Account',
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 2, 41, 125),
+                            fontSize: isSmall ? 11 : 13,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-
-                        SizedBox(width: width * 0.03),
-
-                        ElevatedButton(
-                          onPressed: _openAddCashModule,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor:
-                                const Color.fromARGB(255, 2, 41, 125),
-                            elevation: 0,
-                            side: const BorderSide(
-                              color: Color.fromARGB(255, 2, 41, 125),
+                        SizedBox(height: width * 0.03),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _formatBalance(balance),
+                                overflow: TextOverflow.clip,
+                                style: TextStyle(
+                                  fontSize: isSmall ? 22 : 28,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
                             ),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isSmall ? 10 : 16,
-                              vertical: isSmall ? 8 : 10,
+                            SizedBox(width: width * 0.03),
+                            ElevatedButton(
+                              onPressed: _openAddCashModule,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor:
+                                    const Color.fromARGB(255, 2, 41, 125),
+                                elevation: 0,
+                                side: const BorderSide(
+                                  color: Color.fromARGB(255, 2, 41, 125),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isSmall ? 10 : 16,
+                                  vertical: isSmall ? 8 : 10,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                              child: Text(
+                                'Add Cash',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: isSmall ? 11 : 13,
+                                ),
+                              ),
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          child: Text(
-                            'Add Cash',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: isSmall ? 11 : 13,
-                            ),
-                          ),
+                          ],
                         ),
+                        SizedBox(height: width * 0.02),
                       ],
-                    ),
-                    SizedBox(height: width * 0.02),
-                  ],
+                    );
+                  },
                 );
               },
             ),

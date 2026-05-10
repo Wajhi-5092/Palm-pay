@@ -9,10 +9,13 @@ class PalmScanScreen extends StatelessWidget {
     super.key,
     required this.isRegistration,
     this.billAmount,
+    this.checkoutSessionId,
   });
 
   final bool isRegistration;
   final double? billAmount;
+  /// One bill flow from merchant "Scan to Charge" — blocks duplicate customer scans after a successful payment.
+  final String? checkoutSessionId;
 
   PalmScannerPurpose get _purpose {
     if (isRegistration) return PalmScannerPurpose.registration;
@@ -26,6 +29,7 @@ class PalmScanScreen extends StatelessWidget {
     return PalmScannerScreen(
       purpose: _purpose,
       checkoutAmount: billAmount,
+      checkoutSessionId: checkoutSessionId,
     );
   }
 
@@ -52,6 +56,7 @@ class PalmScanScreen extends StatelessWidget {
                   builder: (_) => PalmScannerScreen(
                     purpose: PalmScannerPurpose.registration,
                     checkoutAmount: billAmount,
+                    checkoutSessionId: checkoutSessionId,
                   ),
                 ),
               );
