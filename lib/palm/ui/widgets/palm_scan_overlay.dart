@@ -226,5 +226,13 @@ class _PalmMeshPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _PalmMeshPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _PalmMeshPainter oldDelegate) {
+    if (oldDelegate.hands.length != hands.length) return true;
+    if (hands.isEmpty) return false;
+    if (oldDelegate.hands.first.length != hands.first.length) return true;
+    if (hands.first.isEmpty) return false;
+    final a = oldDelegate.hands.first[0];
+    final b = hands.first[0];
+    return (a.x - b.x).abs() > 0.008 || (a.y - b.y).abs() > 0.008;
+  }
 }

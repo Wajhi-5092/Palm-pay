@@ -16,9 +16,10 @@ class MediapipeHandEngine {
     if (!Platform.isAndroid) return;
     _plugin?.dispose();
     _plugin = HandLandmarkerPlugin.create(
-      numHands: 2,
-      minHandDetectionConfidence: 0.72,
-      delegate: HandLandmarkerDelegate.gpu,
+      numHands: 1,
+      minHandDetectionConfidence: 0.65,
+      // CPU is more stable with CameraX on mid-range Android (GPU often stalls preview).
+      delegate: HandLandmarkerDelegate.cpu,
     );
   }
 

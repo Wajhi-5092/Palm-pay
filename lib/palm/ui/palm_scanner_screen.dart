@@ -56,6 +56,8 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
   bool _switchingLens = false;
   bool _frameBusy = false;
   bool _processing = false;
+  int _qualityTick = 0;
+  DateTime _lastDetectAt = DateTime.fromMillisecondsSinceEpoch(0);
 
   List<List<PalmLm>> _hands = [];
   String _phaseMessage = 'Searching for your palm…';
@@ -71,7 +73,7 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
     if (!mounted) return;
     final now = DateTime.now();
     if (!force &&
-        now.difference(_lastOverlayPaint).inMilliseconds < 45) {
+        now.difference(_lastOverlayPaint).inMilliseconds < 80) {
       return;
     }
     _lastOverlayPaint = now;
@@ -153,7 +155,10 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
     await cam.dispose();
   }
 
-  Future<void> _startCameraForLens(CameraLensDirection lens) async {
+  Future<void> _startCameraForLens(
+    CameraLensDirection lens, {
+    required bool startMlStream,
+  }) async {
     late CameraDescription camDesc;
     try {
       camDesc = _cameras.firstWhere((c) => c.lensDirection == lens);
@@ -166,14 +171,31 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
       camDesc,
       ResolutionPreset.medium,
       enableAudio: false,
+      fps: 30,
       imageFormatGroup: ImageFormatGroup.yuv420,
     );
 
     await _camera!.initialize();
-    await _camera!.setFocusMode(FocusMode.auto);
-    await _camera!.setExposureMode(ExposureMode.auto);
-    await _camera!.setFlashMode(FlashMode.off);
-    await _camera!.startImageStream(_onCameraImage);
+    try {
+      await _camera!.setFlashMode(FlashMode.off).timeout(
+        const Duration(milliseconds: 500),
+      );
+    } catch (_) {}
+
+    if (startMlStream) {
+      await _beginMlStreamWhenPreviewReady();
+    }
+  }
+
+  /// Let the preview settle like a normal camera app, then start ML.
+  Future<void> _beginMlStreamWhenPreviewReady() async {
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    if (!mounted || _simpleMode || _processing) return;
+    final cam = _camera;
+    if (cam == null || !cam.value.isInitialized || cam.value.isStreamingImages) {
+      return;
+    }
+    await cam.startImageStream(_onCameraImage);
   }
 
   Future<void> _switchLens(CameraLensDirection lens) async {
@@ -199,7 +221,7 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
         await _startSimpleCameraForLens(lens);
       } else {
         await _engine.init();
-        await _startCameraForLens(lens);
+        await _startCameraForLens(lens, startMlStream: true);
       }
     } catch (e) {
       if (mounted) {
@@ -270,13 +292,16 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
       camDesc,
       ResolutionPreset.medium,
       enableAudio: false,
+      fps: 30,
       imageFormatGroup: format,
     );
 
     await _camera!.initialize();
-    await _camera!.setFocusMode(FocusMode.auto);
-    await _camera!.setExposureMode(ExposureMode.auto);
-    await _camera!.setFlashMode(FlashMode.off);
+    try {
+      await _camera!.setFlashMode(FlashMode.off).timeout(
+        const Duration(milliseconds: 500),
+      );
+    } catch (_) {}
   }
 
   Future<void> _bootstrap() async {
@@ -296,7 +321,7 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
 
       _activeLens = _pickInitialLens();
       await _engine.init();
-      await _startCameraForLens(_activeLens);
+      await _startCameraForLens(_activeLens, startMlStream: false);
 
       if (mounted) {
         setState(() {
@@ -305,6 +330,7 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
           _phaseMessage = 'Searching for your palm…';
         });
       }
+      await _beginMlStreamWhenPreviewReady();
     } on CameraException catch (e) {
       await _disposeCameraController();
       if (mounted) {
@@ -476,6 +502,12 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
     }
     if (!_engine.isSupported) return;
 
+    final now = DateTime.now();
+    if (now.difference(_lastDetectAt).inMilliseconds < 90) {
+      return;
+    }
+    _lastDetectAt = now;
+
     _frameBusy = true;
     try {
       final orient = _camera!.description.sensorOrientation;
@@ -522,9 +554,12 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
         localWarn = 'Move slightly back — palm too large.';
       }
 
-      final q = _qualityGate.evaluate(image: image, landmarks: lm);
-      if (!q.isAcceptable) {
-        localWarn = q.reason;
+      final qSkip = (++_qualityTick % 3) != 0;
+      if (!qSkip) {
+        final q = _qualityGate.evaluate(image: image, landmarks: lm);
+        if (!q.isAcceptable) {
+          localWarn = q.reason;
+        }
       }
 
       if (localWarn != null) {
@@ -727,7 +762,9 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
               child: Center(
                 child: AspectRatio(
                   aspectRatio: ratio,
-                  child: CameraPreview(_camera!),
+                  child: RepaintBoundary(
+                    child: CameraPreview(_camera!),
+                  ),
                 ),
               ),
             ),
@@ -841,7 +878,9 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        CameraPreview(_camera!),
+                        RepaintBoundary(
+                          child: CameraPreview(_camera!),
+                        ),
                         PalmScanOverlay(
                           hands: _hands,
                           controller: _camera!,

@@ -85,8 +85,8 @@ class PalmFrameQualityService {
     var count = 0;
     var gradSum = 0.0;
 
-    for (var y = iy0; y < iy1; y += 2) {
-      for (var x = ix0; x < ix1; x += 2) {
+    for (var y = iy0; y < iy1; y += 4) {
+      for (var x = ix0; x < ix1; x += 4) {
         final yv = _y(bytes, rowStride, x, y);
         samples.add(yv);
         sumY += yv;
