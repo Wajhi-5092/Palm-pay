@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:paypalm/services/auth_service.dart';
@@ -13,6 +12,8 @@ import 'merchant_settings_screen.dart';
 import 'merchant_withdrawal_screen.dart';
 import 'package:paypalm/screens/auth_choice_screen.dart';
 import 'package:paypalm/merchant/screens/merchant_billing_screen.dart';
+import 'package:paypalm/theme/responsive.dart';
+import 'package:paypalm/widgets/common/soft_blob.dart';
 
 class MerchantHomeScreen extends StatefulWidget {
   const MerchantHomeScreen({super.key});
@@ -42,14 +43,17 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
     _loadMerchantData();
     _merchantLiveSub =
         _merchantService.watchCurrentMerchant().listen((merchant) async {
-      if (!mounted) return;
-      setState(() => _merchant = merchant);
+      Map<String, dynamic>? stats;
       if (merchant != null) {
         try {
-          final s = await _merchantService.getMerchantStats(merchant.id);
-          if (mounted) setState(() => _stats = s);
+          stats = await _merchantService.getMerchantStats(merchant.id);
         } catch (_) {/* keep previous stats */}
       }
+      if (!mounted) return;
+      setState(() {
+        _merchant = merchant;
+        if (stats != null) _stats = stats;
+      });
     });
   }
 
@@ -102,33 +106,42 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
         children: [
           // Header
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppLayout.horizontalPadding(context),
+              vertical: AppLayout.isShort(context) ? 12 : 20,
+            ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _merchant?.storeName ?? 'Merchant Dashboard',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: textPrimary,
-                        letterSpacing: -0.5,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _merchant?.storeName ?? 'Merchant Dashboard',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: AppLayout.isNarrow(context) ? 18 : 22,
+                          fontWeight: FontWeight.w900,
+                          color: textPrimary,
+                          letterSpacing: -0.5,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'ID: ${_merchant?.merchantId ?? ''}',
-                      style: TextStyle(
-                        color: textPrimary.withValues(alpha: 0.5),
-                        fontWeight: FontWeight.w500,
-                        fontSize: 13,
+                      const SizedBox(height: 4),
+                      Text(
+                        'ID: ${_merchant?.merchantId ?? ''}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: textPrimary.withValues(alpha: 0.5),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 12),
                 _buildProfileAvatar(accentBlue),
               ],
             ),
@@ -136,10 +149,13 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
 
           Expanded(
             child: CustomScrollView(
+              cacheExtent: 280,
               physics: const BouncingScrollPhysics(),
               slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppLayout.horizontalPadding(context),
+                  ),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       // Balance Card
@@ -156,11 +172,11 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
 
                       const SizedBox(height: 32),
 
-                      const Text(
+                      Text(
                         'Quick Actions',
                         style: TextStyle(
                           color: textPrimary,
-                          fontSize: 18,
+                          fontSize: AppLayout.sectionTitleSize(context),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -207,14 +223,17 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
 
                       // Transactions Section
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Recent Activity',
-                            style: TextStyle(
-                              color: textPrimary,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
+                          Expanded(
+                            child: Text(
+                              'Recent Activity',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: textPrimary,
+                                fontSize: AppLayout.sectionTitleSize(context),
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                           TextButton(
@@ -282,7 +301,7 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
           Positioned(
             top: -50,
             right: -30,
-            child: _LightAmbientGlow(
+            child: SoftBlob(
               color: accentBlue.withValues(alpha: 0.08),
               size: glowSize,
             ),
@@ -290,7 +309,7 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
           Positioned(
             bottom: 100,
             left: -50,
-            child: _LightAmbientGlow(
+            child: SoftBlob(
               color: accentTeal.withValues(alpha: 0.08),
               size: glowSize,
             ),
@@ -435,26 +454,6 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Helper for the background effect
-class _LightAmbientGlow extends StatelessWidget {
-  final Color color;
-  final double size;
-  const _LightAmbientGlow({required this.color, required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
-        child: Container(color: Colors.transparent),
       ),
     );
   }

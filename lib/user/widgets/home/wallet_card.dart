@@ -47,7 +47,8 @@ class _WalletCardState extends State<WalletCard> {
         final width = constraints.maxWidth;
         final isSmall = width < 350;
 
-        return GestureDetector(
+        return RepaintBoundary(
+          child: GestureDetector(
           onTap: () {},
           child: Container(
             margin: EdgeInsets.symmetric(
@@ -214,6 +215,7 @@ class _WalletCardState extends State<WalletCard> {
               ),
             ),
           ),
+        ),
         );
           },
         );

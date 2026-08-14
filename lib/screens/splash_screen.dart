@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:paypalm/widgets/common/soft_blob.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:paypalm/services/auth_service.dart';
 import 'auth_choice_screen.dart';
@@ -99,7 +99,7 @@ class _SplashScreenState extends State<SplashScreen>
               Positioned(
                 top: -constraints.maxHeight * 0.15,
                 left: -constraints.maxWidth * 0.2,
-                child: _Glow(
+                child: SoftBlob(
                   size: constraints.maxWidth * 0.8,
                   color: brandTeal.withValues(alpha: 0.12),
                 ),
@@ -109,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
               Positioned(
                 bottom: -constraints.maxHeight * 0.15,
                 right: -constraints.maxWidth * 0.2,
-                child: _Glow(
+                child: SoftBlob(
                   size: constraints.maxWidth * 0.8,
                   color: const Color(0xFF3A86FF).withValues(alpha: 0.12),
                 ),
@@ -209,32 +209,6 @@ class _SplashScreenState extends State<SplashScreen>
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-class _Glow extends StatelessWidget {
-  final double size;
-  final Color color;
-
-  const _Glow({
-    required this.size,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-      ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-        child: Container(color: Colors.transparent),
       ),
     );
   }

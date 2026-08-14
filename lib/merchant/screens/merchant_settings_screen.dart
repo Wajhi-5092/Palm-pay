@@ -6,6 +6,7 @@ import 'package:paypalm/services/local_app_state_service.dart';
 import 'package:paypalm/services/merchant_service.dart';
 import 'package:paypalm/models/merchant_model.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
+import 'package:paypalm/theme/responsive.dart';
 import 'merchant_profile_edit_screen.dart';
 
 class MerchantSettingsScreen extends StatefulWidget {
@@ -65,8 +66,11 @@ class _MerchantSettingsScreenState extends State<MerchantSettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppLayout.horizontalPadding(context),
+              vertical: AppLayout.isShort(context) ? 12 : 20,
+            ),
             child: Text(
               'Settings',
               style: TextStyle(
@@ -80,7 +84,9 @@ class _MerchantSettingsScreenState extends State<MerchantSettingsScreen> {
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppLayout.horizontalPadding(context),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -255,6 +261,8 @@ class _MerchantSettingsScreenState extends State<MerchantSettingsScreen> {
               children: [
                 Text(
                   _merchant!.storeName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,

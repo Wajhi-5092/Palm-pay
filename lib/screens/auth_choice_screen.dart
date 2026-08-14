@@ -1,5 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:paypalm/theme/responsive.dart';
+import 'package:paypalm/widgets/common/soft_blob.dart';
 import '../user/screens/login_screen.dart';
 import '../merchant/screens/merchant_login_screen.dart';
 
@@ -8,13 +9,12 @@ class AuthChoiceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery.sizeOf(context);
     final height = size.height;
-    final width = size.width;
     final glowSize = (size.shortestSide * 0.7).clamp(200.0, 320.0);
 
     // Responsive scaling
-    final isSmall = height < 700;
+    final isSmall = AppLayout.isShort(context) || AppLayout.isNarrow(context);
 
     return Scaffold(
       body: Stack(
@@ -38,17 +38,9 @@ class AuthChoiceScreen extends StatelessWidget {
           Positioned(
             top: -100,
             right: -50,
-            child: Container(
-              width: glowSize,
-              height: glowSize,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF3A86FF).withValues(alpha: 0.15),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-                child: Container(color: Colors.transparent),
-              ),
+            child: SoftBlob(
+              size: glowSize,
+              color: const Color(0xFF3A86FF).withValues(alpha: 0.15),
             ),
           ),
 
@@ -58,8 +50,16 @@ class AuthChoiceScreen extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: height),
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: width * 0.07),
-                  child: Column(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppLayout.horizontalPadding(context),
+                  ),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: AppLayout.contentMaxWidth,
+                      ),
+                      child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(height: height * 0.06),
@@ -151,6 +151,8 @@ class AuthChoiceScreen extends StatelessWidget {
                       SizedBox(height: height * 0.08),
                     ],
                   ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -192,9 +194,7 @@ class RoleCard extends StatelessWidget {
       onTap: onPressed,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
+        child: Container(
             padding: EdgeInsets.all(isSmall ? 16 : 20),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.05),
@@ -232,6 +232,8 @@ class RoleCard extends StatelessWidget {
                     children: [
                       Text(
                         title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: isSmall ? 16 : 18,
@@ -241,6 +243,8 @@ class RoleCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.6),
                           fontSize: isSmall ? 12 : 13,
@@ -258,7 +262,6 @@ class RoleCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }

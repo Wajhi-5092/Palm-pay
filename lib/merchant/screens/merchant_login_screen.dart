@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:paypalm/theme/responsive.dart';
 import '../../services/merchant_service.dart';
 import '../../models/merchant_model.dart';
 import '../../widgets/custom_snackbar.dart';
@@ -140,10 +141,10 @@ class _MerchantLoginScreenState extends State<MerchantLoginScreen> {
           child: Center(
             child: SingleChildScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(AppLayout.horizontalPadding(context)),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(
-                  maxWidth: 420,
+                  maxWidth: AppLayout.contentMaxWidth,
                 ),
                 child: Form(
                   key: _formKey,

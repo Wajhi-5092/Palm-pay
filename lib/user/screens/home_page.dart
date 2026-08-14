@@ -6,6 +6,7 @@ import 'package:paypalm/user/widgets/home/more_features_grid.dart';
 import 'package:paypalm/user/widgets/home/palm_enrollment_status_banner.dart';
 import 'package:paypalm/user/screens/palm_scan_screen.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
+import 'package:paypalm/theme/responsive.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -34,6 +35,7 @@ class HomePage extends StatelessWidget {
                 },
                 color: const Color.fromARGB(255, 0, 92, 178),
                 child: CustomScrollView(
+                  cacheExtent: 280,
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
                   ),
@@ -61,12 +63,14 @@ class HomePage extends StatelessWidget {
                     ),
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0, vertical: 8.0),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppLayout.horizontalPadding(context),
+                          vertical: 8.0,
+                        ),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            GestureDetector(
+                            Expanded(
+                              child: GestureDetector(
                               onTap: () async {
                                 final ok = await Navigator.push<bool>(
                                   context,
@@ -86,6 +90,8 @@ class HomePage extends StatelessWidget {
                               },
                               child: Text(
                                 'More with PayPalm',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleLarge
@@ -95,6 +101,7 @@ class HomePage extends StatelessWidget {
                                       letterSpacing: 0.5,
                                     ),
                               ),
+                            ),
                             ),
                             TextButton(
                               onPressed: () {

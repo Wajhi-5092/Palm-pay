@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 enum SnackbarType { success, error, warning, info }
@@ -46,9 +45,7 @@ class CustomSnackbar {
         duration: const Duration(seconds: 3),
         content: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
+          child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B).withValues(alpha: 0.85),
@@ -93,7 +90,6 @@ class CustomSnackbar {
                 ],
               ),
             ),
-          ),
         ),
       ),
     );

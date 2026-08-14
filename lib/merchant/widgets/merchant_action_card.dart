@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:paypalm/theme/responsive.dart';
 
 class MerchantActionCard extends StatelessWidget {
   final IconData icon;
@@ -19,7 +20,7 @@ class MerchantActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppLayout.isNarrow(context) ? 12 : 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -44,9 +45,11 @@ class MerchantActionCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               title,
-              style: const TextStyle(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
-                fontSize: 16,
+                fontSize: AppLayout.isNarrow(context) ? 14 : 16,
               ),
             ),
           ],

@@ -1,11 +1,12 @@
 // ignore_for_file: deprecated_member_use
 
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'package:paypalm/services/auth_service.dart';
 import 'package:paypalm/services/connectivity_service.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
+import 'package:paypalm/theme/responsive.dart';
+import 'package:paypalm/widgets/common/soft_blob.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -162,6 +163,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     const Color brandTeal = Color(0xFF00D1B2);
     const Color accentBlue = Color(0xFF3A86FF);
+    final glowSize =
+        (MediaQuery.sizeOf(context).shortestSide * 0.75).clamp(220.0, 360.0);
 
     return Scaffold(
       body: Stack(
@@ -185,21 +188,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
           Positioned(
             top: -100,
             left: -50,
-            child: _AmbientGlow(color: brandTeal.withValues(alpha: 0.15)),
+            child: SoftBlob(color: brandTeal.withValues(alpha: 0.15), size: glowSize),
           ),
           Positioned(
             bottom: -100,
             right: -50,
-            child: _AmbientGlow(color: accentBlue.withValues(alpha: 0.15)),
+            child: SoftBlob(color: accentBlue.withValues(alpha: 0.15), size: glowSize),
           ),
 
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: Column(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppLayout.horizontalPadding(context),
+              ),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: AppLayout.contentMaxWidth,
+                  ),
+                  child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 40),
+                  SizedBox(height: AppLayout.pageTopGap(context)),
                   // Back Button
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -213,11 +224,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 40),
 
                   // Header
-                  const Text(
+                  Text(
                     'Join PayPalm',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 32,
+                      fontSize: AppLayout.titleSize(context),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -391,6 +402,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 60),
                 ],
               ),
+                ),
+              ),
             ),
           ),
         ],
@@ -401,9 +414,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildGenderDropdown() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
+      child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.05),
@@ -434,7 +445,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 
@@ -466,9 +476,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
+            child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(16),
@@ -532,34 +540,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         horizontal: 20, vertical: 18),
                   ),
                 ),
-              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _AmbientGlow extends StatelessWidget {
-  final Color color;
-  const _AmbientGlow({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    final shortestSide = MediaQuery.of(context).size.shortestSide;
-    final glowSize = (shortestSide * 0.75).clamp(220.0, 360.0);
-
-    return Container(
-      width: glowSize,
-      height: glowSize,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-      ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
-        child: Container(color: Colors.transparent),
       ),
     );
   }

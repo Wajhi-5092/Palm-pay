@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:paypalm/theme/responsive.dart';
 import '../../services/merchant_service.dart';
 import '../../models/merchant_model.dart';
 import '../../widgets/custom_snackbar.dart';
@@ -124,8 +125,14 @@ class _MerchantRegistrationScreenState
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
+            padding: EdgeInsets.all(AppLayout.horizontalPadding(context)),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: AppLayout.contentMaxWidth,
+                ),
+                child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -362,6 +369,8 @@ class _MerchantRegistrationScreenState
                     ),
                   ),
                 ],
+              ),
+                ),
               ),
             ),
           ),

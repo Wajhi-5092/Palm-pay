@@ -65,6 +65,18 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
   int _steadyFrames = 0;
   bool _livenessDone = false;
   bool _torchOn = false;
+  DateTime _lastOverlayPaint = DateTime.fromMillisecondsSinceEpoch(0);
+
+  void _paintOverlay({bool force = false}) {
+    if (!mounted) return;
+    final now = DateTime.now();
+    if (!force &&
+        now.difference(_lastOverlayPaint).inMilliseconds < 45) {
+      return;
+    }
+    _lastOverlayPaint = now;
+    setState(() {});
+  }
 
   Future<void> _torchOffSilently() async {
     final c = _camera;
@@ -471,29 +483,27 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
 
       if (!mounted) return;
 
-      setState(() => _hands = hands);
+      _hands = hands;
 
       if (hands.length > 1) {
-        setState(() {
-          _warn = 'Only one palm should be visible.';
-          _progress = 0;
-          _steadyFrames = 0;
-          _liveness.reset();
-          _livenessDone = false;
-        });
+        _warn = 'Only one palm should be visible.';
+        _progress = 0;
+        _steadyFrames = 0;
+        _liveness.reset();
+        _livenessDone = false;
+        _paintOverlay(force: true);
         return;
       }
 
       if (hands.isEmpty) {
-        setState(() {
-          _warn = null;
-          _phaseMessage = 'Searching for your palm…';
-          _distanceHint = 'Show your full open palm inside the guide.';
-          _progress = 0;
-          _steadyFrames = 0;
-          _liveness.reset();
-          _livenessDone = false;
-        });
+        _warn = null;
+        _phaseMessage = 'Searching for your palm…';
+        _distanceHint = 'Show your full open palm inside the guide.';
+        _progress = 0;
+        _steadyFrames = 0;
+        _liveness.reset();
+        _livenessDone = false;
+        _paintOverlay();
         return;
       }
 
@@ -518,53 +528,47 @@ class _PalmScannerScreenState extends State<PalmScannerScreen> {
       }
 
       if (localWarn != null) {
-        setState(() {
-          _warn = localWarn;
-          _phaseMessage = 'Adjust your hand';
-          _distanceHint = 'Follow the live outline for alignment.';
-          _progress = 0;
-          _steadyFrames = 0;
-        });
+        _warn = localWarn;
+        _phaseMessage = 'Adjust your hand';
+        _distanceHint = 'Follow the live outline for alignment.';
+        _progress = 0;
+        _steadyFrames = 0;
+        _paintOverlay();
         return;
       }
 
-      setState(() {
-        _warn = null;
-        _phaseMessage = 'Palm detected';
-        _distanceHint = _distanceCopyForCoverage(coverage);
-      });
+      _warn = null;
+      _phaseMessage = 'Palm detected';
+      _distanceHint = _distanceCopyForCoverage(coverage);
 
       _liveness.onFrame(lm);
 
       if (!_livenessDone) {
-        setState(() {
-          _phaseMessage = 'Liveness check';
-          _distanceHint = 'Slowly rotate or tilt your palm left ↔ right.';
-          _progress = (_liveness.passedRotationCue(minDeltaRad: 0.11) ? 0.55 : 0.25);
-        });
+        _phaseMessage = 'Liveness check';
+        _distanceHint = 'Slowly rotate or tilt your palm left ↔ right.';
+        _progress = (_liveness.passedRotationCue(minDeltaRad: 0.11) ? 0.55 : 0.25);
         if (_liveness.passedRotationCue(minDeltaRad: 0.11)) {
           _livenessDone = true;
           _steadyFrames = 0;
         }
+        _paintOverlay();
         return;
       }
 
       if (!_liveness.isStableHold()) {
-        setState(() {
-          _phaseMessage = 'Hold still';
-          _distanceHint = 'Relax — keep the palm inside the oval.';
-          _progress = 0.65;
-          _steadyFrames = 0;
-        });
+        _phaseMessage = 'Hold still';
+        _distanceHint = 'Relax — keep the palm inside the oval.';
+        _progress = 0.65;
+        _steadyFrames = 0;
+        _paintOverlay();
         return;
       }
 
       _steadyFrames++;
-      setState(() {
-        _phaseMessage = 'Hold still';
-        _distanceHint = 'Capturing secure template…';
-        _progress = 0.65 + (_steadyFrames / 18).clamp(0, 1) * 0.3;
-      });
+      _phaseMessage = 'Hold still';
+      _distanceHint = 'Capturing secure template…';
+      _progress = 0.65 + (_steadyFrames / 18).clamp(0, 1) * 0.3;
+      _paintOverlay(force: _steadyFrames >= 14);
 
       if (_steadyFrames >= 15) {
         _processing = true;

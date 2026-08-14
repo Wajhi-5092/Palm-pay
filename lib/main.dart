@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:paypalm/screens/splash_screen.dart';
 import 'package:paypalm/theme/app_theme.dart';
+import 'package:paypalm/theme/responsive.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
@@ -17,6 +18,8 @@ import 'package:paypalm/user/modules/security/mpin_unlock_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  PaintingBinding.instance.imageCache.maximumSize = 80;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 40 << 20;
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -159,12 +162,20 @@ class _MyAppState extends State<MyApp> {
               debugShowCheckedModeBanner: false,
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
+              builder: (context, child) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    textScaler: AppLayout.clampedTextScaler(context),
+                  ),
+                  child: child ?? const SizedBox.shrink(),
+                );
+              },
               home: const SplashScreen(),
             ),
             if (!_isOnline)
               Positioned(
-                left: 16,
-                right: 16,
+                left: AppLayout.horizontalPadding(context),
+                right: AppLayout.horizontalPadding(context),
                 bottom: 24,
                 child: AnimatedOpacity(
                   opacity: _isOnline ? 0 : 1,

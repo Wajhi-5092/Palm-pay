@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:paypalm/theme/responsive.dart';
 
 class MerchantBalanceCard extends StatelessWidget {
   final double balance;
@@ -20,7 +21,7 @@ class MerchantBalanceCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(28),
+      padding: EdgeInsets.all(AppLayout.isNarrow(context) ? 20 : 28),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(32),
         gradient: const LinearGradient(
@@ -72,13 +73,17 @@ class MerchantBalanceCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              Text(
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
                 'Rs ${balance.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 38,
+                  fontSize: AppLayout.isNarrow(context) ? 28 : 38,
                   fontWeight: FontWeight.w900,
                   letterSpacing: -1,
+                ),
                 ),
               ),
               const SizedBox(height: 30),
@@ -134,6 +139,8 @@ class MerchantBalanceCard extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Colors.white,
             fontSize: 17,

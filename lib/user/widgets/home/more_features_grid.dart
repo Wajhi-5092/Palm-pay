@@ -3,6 +3,7 @@ import 'package:paypalm/user/screens/palm_scan_screen.dart';
 import 'package:paypalm/user/screens/transaction_history_screen.dart';
 import 'package:paypalm/widgets/custom_snackbar.dart';
 import 'package:paypalm/user/screens/account_screen.dart';
+import 'package:paypalm/theme/responsive.dart';
 
 class MoreFeaturesGrid extends StatelessWidget {
   const MoreFeaturesGrid({super.key});
@@ -59,14 +60,20 @@ class MoreFeaturesGrid extends StatelessWidget {
       ),
     ];
 
+    final width = MediaQuery.sizeOf(context).width;
+    final crossAxisCount = width < 360 ? 3 : 4;
+    final iconSize = width < 360 ? 48.0 : 60.0;
+
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppLayout.horizontalPadding(context) * 0.67,
+      ),
       sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
           mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 0.8,
+          crossAxisSpacing: 12,
+          childAspectRatio: width < 360 ? 0.72 : 0.8,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {
@@ -76,8 +83,8 @@ class MoreFeaturesGrid extends StatelessWidget {
               child: Column(
                 children: [
                   Container(
-                    height: 60,
-                    width: 60,
+                    height: iconSize,
+                    width: iconSize,
                     decoration: BoxDecoration(
                       color: feature.color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(16),
@@ -96,6 +103,8 @@ class MoreFeaturesGrid extends StatelessWidget {
                   Text(
                     feature.title,
                     textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
